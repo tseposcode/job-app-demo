@@ -77,6 +77,17 @@ h3{font-family:var(--f-display);font-weight:600;font-size:1.12rem;letter-spacing
 .queued{display:inline-flex;align-items:center;gap:6px;font-weight:600;color:var(--accent)}
 .queued svg{width:14px;height:14px}
 
+/* Applied */
+.state{flex:none;font-size:.78rem;font-weight:700;padding:4px 9px;border-radius:999px;white-space:nowrap}
+.state.interview{color:var(--accent);background:var(--accent-soft)}
+.state.viewed{color:var(--gold);background:var(--gold-soft)}
+.state.sent{color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
+.track{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;list-style:none;margin:0;padding:0}
+.track li{display:flex;flex-direction:column;gap:6px;font-size:.74rem;color:var(--muted)}
+.track li::before{content:"";height:4px;border-radius:2px;background:var(--line)}
+.track li.done{color:var(--ink);font-weight:600}
+.track li.done::before{background:var(--accent)}
+
 /* Profile */
 .who-card{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding-block:6px 4px}
 .avatar{width:104px;height:104px;border-radius:50%;border:0;padding:0;cursor:pointer;position:relative;
@@ -113,7 +124,7 @@ h3{font-family:var(--f-display);font-weight:600;font-size:1.12rem;letter-spacing
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   padding-top:8px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
-.tabs-in{max-width:480px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tabs-in{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .tab{font:inherit;font-size:.74rem;font-weight:600;background:none;border:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;border-radius:10px;-webkit-tap-highlight-color:transparent}
 .tab svg{width:24px;height:24px}
 .tab[aria-current="page"]{color:var(--accent)}
@@ -131,8 +142,8 @@ h3{font-family:var(--f-display);font-weight:600;font-size:1.12rem;letter-spacing
   <!-- Page 1: Jobs -->
   <main id="page-jobs" class="app">
     <div class="hello">
-      <h1>Hi Tsepo</h1>
-      <p class="muted">3 new housekeeper jobs in Gauteng match your profile.</p>
+      <h1>Hi Thabang</h1>
+      <p class="muted">3 new housekeeper jobs in Gauteng you can apply for.</p>
     </div>
 
     <div class="status">
@@ -141,7 +152,7 @@ h3{font-family:var(--f-display);font-weight:600;font-size:1.12rem;letter-spacing
     </div>
 
     <section class="section" aria-labelledby="jobsHead">
-      <h2 id="jobsHead">Matched for you</h2>
+      <h2 id="jobsHead">New jobs for you</h2>
       <ul class="jobs">
         <li class="job">
           <div class="job-h">
@@ -153,7 +164,7 @@ h3{font-family:var(--f-display);font-weight:600;font-size:1.12rem;letter-spacing
             <p class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span>Sandton, Johannesburg</span></p>
             <p class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="num">Mon–Fri, 07:00–16:00</span></p>
           </div>
-          <div class="job-f"><span class="muted">Posted today</span><span class="queued"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>Queued to auto-apply</span></div>
+          <div class="job-f"><span class="muted">Posted today</span><span class="queued"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>Ready to apply</span></div>
         </li>
 
         <li class="job">
@@ -166,7 +177,7 @@ h3{font-family:var(--f-display);font-weight:600;font-size:1.12rem;letter-spacing
             <p class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span>Centurion, Pretoria</span></p>
             <p class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Mon, Wed and Fri</span></p>
           </div>
-          <div class="job-f"><span class="muted">Posted yesterday</span><span class="queued"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>Queued to auto-apply</span></div>
+          <div class="job-f"><span class="muted">Posted yesterday</span><span class="queued"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>Ready to apply</span></div>
         </li>
 
         <li class="job">
@@ -179,13 +190,67 @@ h3{font-family:var(--f-display);font-weight:600;font-size:1.12rem;letter-spacing
             <p class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span>Midrand, Gauteng</span></p>
             <p class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="num">Sat–Sun, 08:00–15:00</span></p>
           </div>
-          <div class="job-f"><span class="muted">Posted 2 days ago</span><span class="queued"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>Queued to auto-apply</span></div>
+          <div class="job-f"><span class="muted">Posted 2 days ago</span><span class="queued"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>Ready to apply</span></div>
         </li>
       </ul>
     </section>
   </main>
 
-  <!-- Page 2: Profile -->
+  <!-- Page 2: Applied jobs -->
+  <main id="page-applied" class="app" hidden>
+    <div class="hello">
+      <h1>Applied jobs</h1>
+      <p class="muted">Jobs that auto-apply sent your CV to.</p>
+    </div>
+
+    <div class="status">
+      <span class="dot" aria-hidden="true"></span>
+      <p><strong>3 applications this week.</strong> One employer wants to interview you.</p>
+    </div>
+
+    <section class="section" aria-labelledby="appliedHead">
+      <h2 id="appliedHead">Your applications</h2>
+      <ul class="jobs">
+        <li class="job">
+          <div class="job-h">
+            <div><h3>Housekeeper and nanny</h3><p class="who">Private household · Randburg</p></div>
+            <span class="state interview">Interview</span>
+          </div>
+          <p class="pay num">R6&#8239;000 <small>per month</small></p>
+          <ol class="track" aria-label="Application progress">
+            <li class="done">Sent</li><li class="done">Viewed</li><li class="done">Interview</li>
+          </ol>
+          <div class="job-f"><span class="muted num">Auto-applied 14 Oct 2026</span><span class="queued">Employer replied</span></div>
+        </li>
+
+        <li class="job">
+          <div class="job-h">
+            <div><h3>Housekeeper</h3><p class="who">Private household · Kempton Park</p></div>
+            <span class="state viewed">Viewed</span>
+          </div>
+          <p class="pay num">R5&#8239;600 <small>per month</small></p>
+          <ol class="track" aria-label="Application progress">
+            <li class="done">Sent</li><li class="done">Viewed</li><li>Interview</li>
+          </ol>
+          <div class="job-f"><span class="muted num">Auto-applied 13 Oct 2026</span><span class="muted">CV opened by employer</span></div>
+        </li>
+
+        <li class="job">
+          <div class="job-h">
+            <div><h3>Office housekeeper</h3><p class="who">Small office · Rosebank</p></div>
+            <span class="state sent">Sent</span>
+          </div>
+          <p class="pay num">R5&#8239;500 <small>per month</small></p>
+          <ol class="track" aria-label="Application progress">
+            <li class="done">Sent</li><li>Viewed</li><li>Interview</li>
+          </ol>
+          <div class="job-f"><span class="muted num">Auto-applied 11 Oct 2026</span><span class="muted">Waiting for employer</span></div>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <!-- Page 3: Profile -->
   <main id="page-profile" class="app" hidden>
     <div class="who-card">
       <button type="button" class="avatar" id="avatarBtn" aria-label="Change profile photo">
@@ -195,14 +260,14 @@ h3{font-family:var(--f-display);font-weight:600;font-size:1.12rem;letter-spacing
       </button>
       <input type="file" id="photoInput" class="sr" accept="image/*" tabindex="-1">
       <p class="photo-hint" id="photoHint">Tap the photo to add your own</p>
-      <h1>Tsepo Jameson</h1>
+      <h1>Thabang Jameson</h1>
       <p class="role">Housekeeper · Gauteng</p>
     </div>
 
     <section class="section" aria-labelledby="detailsHead">
       <h2 id="detailsHead">Personal details</h2>
       <dl class="list">
-        <div class="row"><dt>Name</dt><dd>Tsepo</dd></div>
+        <div class="row"><dt>Name</dt><dd>Thabang</dd></div>
         <div class="row"><dt>Surname</dt><dd>Jameson</dd></div>
         <div class="row"><dt>ID number</dt><dd class="num">990231 5123 081</dd></div>
         <div class="row"><dt>Phone</dt><dd class="num">071 000 4821</dd></div>
@@ -225,7 +290,7 @@ h3{font-family:var(--f-display);font-weight:600;font-size:1.12rem;letter-spacing
       <div class="list">
         <div class="cv">
           <span class="doc" aria-hidden="true">PDF</span>
-          <div><strong>Tsepo_Jameson_CV.pdf</strong><span class="num">Updated 15 Oct 2026</span></div>
+          <div><strong>Thabang_Jameson_CV.pdf</strong><span class="num">Updated 15 Oct 2026</span></div>
         </div>
         <div class="toggle-row">
           <div><strong>Auto-apply</strong><span>Send my CV to matching jobs</span></div>
@@ -244,6 +309,10 @@ h3{font-family:var(--f-display);font-weight:600;font-size:1.12rem;letter-spacing
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>
       Jobs
     </button>
+    <button type="button" class="tab" id="tab-applied" data-page="applied">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>
+      Applied
+    </button>
     <button type="button" class="tab" id="tab-profile" data-page="profile">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
       Profile
@@ -253,7 +322,7 @@ h3{font-family:var(--f-display);font-weight:600;font-size:1.12rem;letter-spacing
 
 <script>
 (function(){
-  var pages = {jobs: document.getElementById('page-jobs'), profile: document.getElementById('page-profile')};
+  var pages = {jobs: document.getElementById('page-jobs'), applied: document.getElementById('page-applied'), profile: document.getElementById('page-profile')};
   var tabs = document.querySelectorAll('.tab');
 
   function show(name){
@@ -267,7 +336,7 @@ h3{font-family:var(--f-display);font-weight:600;font-size:1.12rem;letter-spacing
   }
   tabs.forEach(function(t){ t.addEventListener('click', function(){ show(t.dataset.page); }); });
   var start = (location.hash || '').replace('#','');
-  show(start === 'profile' ? 'profile' : 'jobs');
+  show(pages[start] ? start : 'jobs');
 
   // Profile photo: chosen on this device, shrunk, and kept only in this browser
   var KEY = 'autoapply-demo-photo';
