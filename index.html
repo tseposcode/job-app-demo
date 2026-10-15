@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Jobs Demo">
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>Auto-Apply Job Demo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: phone-first two-tab app; one narrow column of tiles, fixed tab bar at the bottom */
+:root{
+  --bg:#F2F5F1; --surface:#FFFFFF; --ink:#142019; --muted:#5B6A60; --line:#DAE2DB;
+  --accent:#0F6B4F; --accent-ink:#FFFFFF; --accent-soft:#DDEFE6;
+  --gold:#946112; --gold-soft:#FAEED6;
+  --shadow:rgb(15 40 28 / .07);
+  --f-display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1310; --surface:#151D19; --ink:#E5ECE7; --muted:#98A79D; --line:#25302A;
+  --accent:#52C79B; --accent-ink:#05140E; --accent-soft:#16332A;
+  --gold:#EDBB62; --gold-soft:#372A12;
+  --shadow:rgb(0 0 0 / .35); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D1310; --surface:#151D19; --ink:#E5ECE7; --muted:#98A79D; --line:#25302A;
+  --accent:#52C79B; --accent-ink:#05140E; --accent-soft:#16332A;
+  --gold:#EDBB62; --gold-soft:#372A12;
+  --shadow:rgb(0 0 0 / .35); color-scheme:dark}
+
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--f-body);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:18px calc(96px + env(safe-area-inset-bottom,0px))}
+h1,h2,h3,p,dl,dd{margin:0}
+h1{font-family:var(--f-display);font-weight:800;font-size:1.75rem;letter-spacing:-.02em;line-height:1.1;text-wrap:balance}
+h2{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+h3{font-family:var(--f-display);font-weight:600;font-size:1.12rem;letter-spacing:-.01em;line-height:1.2;text-wrap:balance}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+
+.app{max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.wordmark{font-family:var(--f-display);font-weight:800;font-size:1rem;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.wordmark i{display:inline-block;width:22px;height:22px;border-radius:7px;background:var(--accent);position:relative}
+.wordmark i::after{content:"";position:absolute;left:6px;top:5px;width:8px;height:5px;border-left:2.5px solid var(--accent-ink);border-bottom:2.5px solid var(--accent-ink);transform:rotate(-45deg)}
+.pill{font-size:.72rem;font-weight:600;padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+
+.hello{display:flex;flex-direction:column;gap:6px}
+
+.status{display:flex;align-items:center;gap:12px;background:var(--accent-soft);border-radius:14px;padding:12px 14px}
+.status .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex:none;box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent)}
+.status p{font-size:.9rem;min-width:0}
+.status strong{font-weight:700}
+
+.section{display:flex;flex-direction:column;gap:10px}
+.jobs{display:flex;flex-direction:column;gap:12px;list-style:none;margin:0;padding:0}
+.job{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 2px var(--shadow)}
+.job-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.job-h>div{min-width:0;display:flex;flex-direction:column;gap:3px}
+.who{font-size:.86rem;color:var(--muted)}
+.match{flex:none;font-size:.78rem;font-weight:700;color:var(--gold);background:var(--gold-soft);padding:4px 9px;border-radius:999px;white-space:nowrap}
+.facts{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
+.fact{display:flex;align-items:center;gap:8px;font-size:.88rem;min-width:0}
+.fact svg{width:16px;height:16px;flex:none;color:var(--muted)}
+.fact span{min-width:0}
+.pay{font-family:var(--f-display);font-weight:600;font-size:1.25rem;letter-spacing:-.01em}
+.pay small{font-family:var(--f-body);font-size:.8rem;font-weight:500;color:var(--muted);letter-spacing:0}
+.job-f{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:12px;border-top:1px solid var(--line);font-size:.8rem}
+.queued{display:inline-flex;align-items:center;gap:6px;font-weight:600;color:var(--accent)}
+.queued svg{width:14px;height:14px}
+
+/* Profile */
+.who-card{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding-block:6px 4px}
+.avatar{width:104px;height:104px;border-radius:50%;border:0;padding:0;cursor:pointer;position:relative;
+  background:var(--accent);color:var(--accent-ink);font-family:var(--f-display);font-weight:800;font-size:2.2rem;letter-spacing:-.02em;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 0 0 4px var(--surface),0 0 0 5px var(--line)}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.avatar .cam{position:absolute;right:4px;bottom:4px;width:28px;height:28px;border-radius:50%;background:var(--surface);color:var(--ink);
+  display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px var(--shadow)}
+.avatar .cam svg{width:15px;height:15px}
+.photo-hint{font-size:.8rem;color:var(--muted)}
+.role{font-size:.92rem;color:var(--muted)}
+.sr{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
+
+.list{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.row{display:grid;grid-template-columns:7.5rem minmax(0,1fr);gap:12px;padding:13px 16px;align-items:baseline}
+.row+.row{border-top:1px solid var(--line)}
+.row dt{font-size:.84rem;color:var(--muted)}
+.row dd{font-weight:500;overflow-wrap:anywhere}
+.cv{display:flex;align-items:center;gap:12px;padding:13px 16px}
+.cv .doc{width:38px;height:46px;border-radius:6px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;letter-spacing:.04em;flex:none}
+.cv div{min-width:0;display:flex;flex-direction:column;gap:2px}
+.cv strong{font-weight:600;overflow-wrap:anywhere}
+.cv span{font-size:.8rem;color:var(--muted)}
+.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;border-top:1px solid var(--line)}
+.toggle-row div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.toggle-row span{font-size:.8rem;color:var(--muted)}
+.switch{width:50px;height:30px;border-radius:999px;background:var(--line);border:0;padding:0;position:relative;cursor:pointer;flex:none}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgb(0 0 0 / .25)}
+.switch[aria-checked="true"]{background:var(--accent)}
+.switch[aria-checked="true"]::after{left:23px}
+.sample{font-size:.78rem;color:var(--muted);text-align:center;text-wrap:balance}
+
+/* Tab bar */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-top:8px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
+.tabs-in{max-width:480px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tab{font:inherit;font-size:.74rem;font-weight:600;background:none;border:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;border-radius:10px;-webkit-tap-highlight-color:transparent}
+.tab svg{width:24px;height:24px}
+.tab[aria-current="page"]{color:var(--accent)}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+@media (prefers-reduced-motion: no-preference){.switch::after{transition:left .18s ease}.switch{transition:background-color .18s}}
+@media (max-width:360px){.facts{grid-template-columns:1fr}.row{grid-template-columns:6.5rem minmax(0,1fr)}}
+</style>
+
+<div class="app">
+  <header class="topline">
+    <span class="wordmark"><i aria-hidden="true"></i>Jobs</span>
+    <span class="pill">Concept demo</span>
+  </header>
+
+  <!-- Page 1: Jobs -->
+  <main id="page-jobs" class="app">
+    <div class="hello">
+      <h1>Hi Tsepo</h1>
+      <p class="muted">3 new housekeeper jobs in Gauteng match your profile.</p>
+    </div>
+
+    <div class="status">
+      <span class="dot" aria-hidden="true"></span>
+      <p><strong>Auto-apply is on.</strong> Your CV goes to every job that matches your preferences.</p>
+    </div>
+
+    <section class="section" aria-labelledby="jobsHead">
+      <h2 id="jobsHead">Matched for you</h2>
+      <ul class="jobs">
+        <li class="job">
+          <div class="job-h">
+            <div><h3>Live-out housekeeper</h3><p class="who">Private household · Sandton</p></div>
+            <span class="match num">96% match</span>
+          </div>
+          <p class="pay num">R6&#8239;500 <small>per month</small></p>
+          <div class="facts">
+            <p class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span>Sandton, Johannesburg</span></p>
+            <p class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="num">Mon–Fri, 07:00–16:00</span></p>
+          </div>
+          <div class="job-f"><span class="muted">Posted today</span><span class="queued"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>Queued to auto-apply</span></div>
+        </li>
+
+        <li class="job">
+          <div class="job-h">
+            <div><h3>Housekeeper and laundry</h3><p class="who">Private household · Centurion</p></div>
+            <span class="match num">91% match</span>
+          </div>
+          <p class="pay num">R5&#8239;800 <small>per month</small></p>
+          <div class="facts">
+            <p class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span>Centurion, Pretoria</span></p>
+            <p class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Mon, Wed and Fri</span></p>
+          </div>
+          <div class="job-f"><span class="muted">Posted yesterday</span><span class="queued"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>Queued to auto-apply</span></div>
+        </li>
+
+        <li class="job">
+          <div class="job-h">
+            <div><h3>Weekend housekeeper</h3><p class="who">Guesthouse · Midrand</p></div>
+            <span class="match num">88% match</span>
+          </div>
+          <p class="pay num">R320 <small>per day</small></p>
+          <div class="facts">
+            <p class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span>Midrand, Gauteng</span></p>
+            <p class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="num">Sat–Sun, 08:00–15:00</span></p>
+          </div>
+          <div class="job-f"><span class="muted">Posted 2 days ago</span><span class="queued"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>Queued to auto-apply</span></div>
+        </li>
+      </ul>
+    </section>
+  </main>
+
+  <!-- Page 2: Profile -->
+  <main id="page-profile" class="app" hidden>
+    <div class="who-card">
+      <button type="button" class="avatar" id="avatarBtn" aria-label="Change profile photo">
+        <span id="initials">TJ</span>
+        <img id="avatarImg" alt="" hidden>
+        <span class="cam" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
+      </button>
+      <input type="file" id="photoInput" class="sr" accept="image/*" tabindex="-1">
+      <p class="photo-hint" id="photoHint">Tap the photo to add your own</p>
+      <h1>Tsepo Jameson</h1>
+      <p class="role">Housekeeper · Gauteng</p>
+    </div>
+
+    <section class="section" aria-labelledby="detailsHead">
+      <h2 id="detailsHead">Personal details</h2>
+      <dl class="list">
+        <div class="row"><dt>Name</dt><dd>Tsepo</dd></div>
+        <div class="row"><dt>Surname</dt><dd>Jameson</dd></div>
+        <div class="row"><dt>ID number</dt><dd class="num">990231 5123 081</dd></div>
+        <div class="row"><dt>Phone</dt><dd class="num">071 000 4821</dd></div>
+        <div class="row"><dt>Address</dt><dd>18 Protea Close, Kempton Park, 1619</dd></div>
+      </dl>
+    </section>
+
+    <section class="section" aria-labelledby="prefHead">
+      <h2 id="prefHead">Job preferences</h2>
+      <dl class="list">
+        <div class="row"><dt>Job type</dt><dd>Housekeeper</dd></div>
+        <div class="row"><dt>Area</dt><dd>Gauteng</dd></div>
+        <div class="row"><dt>Work type</dt><dd>Live-out, full or part time</dd></div>
+        <div class="row"><dt>Minimum pay</dt><dd class="num">R5&#8239;500 per month</dd></div>
+      </dl>
+    </section>
+
+    <section class="section" aria-labelledby="cvHead">
+      <h2 id="cvHead">CV and auto-apply</h2>
+      <div class="list">
+        <div class="cv">
+          <span class="doc" aria-hidden="true">PDF</span>
+          <div><strong>Tsepo_Jameson_CV.pdf</strong><span class="num">Updated 15 Oct 2026</span></div>
+        </div>
+        <div class="toggle-row">
+          <div><strong>Auto-apply</strong><span>Send my CV to matching jobs</span></div>
+          <button type="button" class="switch" id="autoSwitch" role="switch" aria-checked="true" aria-label="Auto-apply"></button>
+        </div>
+      </div>
+    </section>
+
+    <p class="sample">Sample profile for a concept demo. The name, ID number, phone number and address are made up.</p>
+  </main>
+</div>
+
+<nav class="tabs" aria-label="Pages">
+  <div class="tabs-in">
+    <button type="button" class="tab" id="tab-jobs" data-page="jobs" aria-current="page">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>
+      Jobs
+    </button>
+    <button type="button" class="tab" id="tab-profile" data-page="profile">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
+      Profile
+    </button>
+  </div>
+</nav>
+
+<script>
+(function(){
+  var pages = {jobs: document.getElementById('page-jobs'), profile: document.getElementById('page-profile')};
+  var tabs = document.querySelectorAll('.tab');
+
+  function show(name){
+    if(!pages[name]) name = 'jobs';
+    Object.keys(pages).forEach(function(k){ pages[k].hidden = (k !== name); });
+    tabs.forEach(function(t){
+      if(t.dataset.page === name) t.setAttribute('aria-current','page'); else t.removeAttribute('aria-current');
+    });
+    window.scrollTo(0,0);
+    try{ history.replaceState(null,'','#'+name); }catch(e){}
+  }
+  tabs.forEach(function(t){ t.addEventListener('click', function(){ show(t.dataset.page); }); });
+  var start = (location.hash || '').replace('#','');
+  show(start === 'profile' ? 'profile' : 'jobs');
+
+  // Profile photo: chosen on this device, shrunk, and kept only in this browser
+  var KEY = 'autoapply-demo-photo';
+  var btn = document.getElementById('avatarBtn');
+  var input = document.getElementById('photoInput');
+  var img = document.getElementById('avatarImg');
+  var initials = document.getElementById('initials');
+  var hint = document.getElementById('photoHint');
+
+  function setPhoto(src){
+    if(!src) return;
+    img.src = src; img.hidden = false; initials.hidden = true;
+    hint.textContent = 'Tap the photo to change it';
+  }
+  try{ setPhoto(localStorage.getItem(KEY)); }catch(e){}
+
+  btn.addEventListener('click', function(){ input.click(); });
+  input.addEventListener('change', function(){
+    var file = input.files && input.files[0];
+    if(!file) return;
+    var reader = new FileReader();
+    reader.onload = function(){
+      var raw = new Image();
+      raw.onload = function(){
+        var size = 320, c = document.createElement('canvas');
+        c.width = size; c.height = size;
+        var s = Math.min(raw.width, raw.height);
+        var sx = (raw.width - s)/2, sy = (raw.height - s)/2;
+        c.getContext('2d').drawImage(raw, sx, sy, s, s, 0, 0, size, size);
+        var out = c.toDataURL('image/jpeg', 0.85);
+        setPhoto(out);
+        try{ localStorage.setItem(KEY, out); }catch(e){}
+      };
+      raw.onerror = function(){ hint.textContent = 'That file could not be opened. Try a JPG or PNG photo.'; };
+      raw.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+    input.value = '';
+  });
+
+  // Auto-apply switch (demo only)
+  var sw = document.getElementById('autoSwitch');
+  sw.addEventListener('click', function(){
+    sw.setAttribute('aria-checked', sw.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
+  });
+})();
+</script>
+
+</body>
+</html>
