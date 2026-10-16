@@ -4,22 +4,24 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Jobs Demo">
+<meta name="apple-mobile-web-app-title" content="Job Auto">
+<meta name="theme-color" content="#0F6B4F">
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
-<title>Auto-Apply Job Demo</title>
+<title>Job Auto</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
 <style>
-/* Layout: phone-first two-tab app; one narrow column of tiles, fixed tab bar at the bottom */
+/* Layout: phone-first app; one narrow column, fixed tab bar at the bottom, bottom sheets for detail and forms */
 :root{
   --bg:#F2F5F1; --surface:#FFFFFF; --ink:#142019; --muted:#5B6A60; --line:#DAE2DB;
   --accent:#0F6B4F; --accent-ink:#FFFFFF; --accent-soft:#DDEFE6;
   --gold:#946112; --gold-soft:#FAEED6;
-  --shadow:rgb(15 40 28 / .07);
+  --bad:#A8322A; --bad-soft:#FBE4E1;
+  --shadow:rgb(15 40 28 / .07); --scrim:rgb(8 16 12 / .5);
   --f-display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
   --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
 }
@@ -27,361 +29,969 @@
   --bg:#0D1310; --surface:#151D19; --ink:#E5ECE7; --muted:#98A79D; --line:#25302A;
   --accent:#52C79B; --accent-ink:#05140E; --accent-soft:#16332A;
   --gold:#EDBB62; --gold-soft:#372A12;
-  --shadow:rgb(0 0 0 / .35); color-scheme:dark}}
+  --bad:#F08A80; --bad-soft:#3A1B18;
+  --shadow:rgb(0 0 0 / .35); --scrim:rgb(0 0 0 / .65); color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#0D1310; --surface:#151D19; --ink:#E5ECE7; --muted:#98A79D; --line:#25302A;
   --accent:#52C79B; --accent-ink:#05140E; --accent-soft:#16332A;
   --gold:#EDBB62; --gold-soft:#372A12;
-  --shadow:rgb(0 0 0 / .35); color-scheme:dark}
+  --bad:#F08A80; --bad-soft:#3A1B18;
+  --shadow:rgb(0 0 0 / .35); --scrim:rgb(0 0 0 / .65); color-scheme:dark}
 
 *{box-sizing:border-box}
 html,body{background:var(--bg);color:var(--ink)}
 body{font-family:var(--f-body);font-size:15px;line-height:1.45;
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   padding-block:18px calc(96px + env(safe-area-inset-bottom,0px))}
-h1,h2,h3,p,dl,dd{margin:0}
+body.no-tabs{padding-block:18px 32px}
+h1,h2,h3,p,dl,dd,ul,ol{margin:0}
+ul,ol{padding:0;list-style:none}
 h1{font-family:var(--f-display);font-weight:800;font-size:1.75rem;letter-spacing:-.02em;line-height:1.1;text-wrap:balance}
 h2{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
-h3{font-family:var(--f-display);font-weight:600;font-size:1.12rem;letter-spacing:-.01em;line-height:1.2;text-wrap:balance}
+h3,.jt{font-family:var(--f-display);font-weight:600;font-size:1.12rem;letter-spacing:-.01em;line-height:1.2;text-wrap:balance}
 .num{font-variant-numeric:tabular-nums}
 .muted{color:var(--muted)}
+.small{font-size:.84rem}
+a{color:var(--accent)}
 
 .app{max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.view{display:flex;flex-direction:column;gap:18px}
 .topline{display:flex;align-items:center;justify-content:space-between;gap:10px}
-.wordmark{font-family:var(--f-display);font-weight:800;font-size:1rem;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
-.wordmark i{display:inline-block;width:22px;height:22px;border-radius:7px;background:var(--accent);position:relative}
+.wordmark{font-family:var(--f-display);font-weight:800;font-size:1.05rem;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.wordmark i{display:inline-block;width:22px;height:22px;border-radius:7px;background:var(--accent);position:relative;flex:none}
 .wordmark i::after{content:"";position:absolute;left:6px;top:5px;width:8px;height:5px;border-left:2.5px solid var(--accent-ink);border-bottom:2.5px solid var(--accent-ink);transform:rotate(-45deg)}
 .pill{font-size:.72rem;font-weight:600;padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
-
 .hello{display:flex;flex-direction:column;gap:6px}
 
+/* Buttons and fields */
+.btn{font:inherit;font-weight:600;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:12px;
+  padding:10px 14px;min-height:44px;cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;-webkit-tap-highlight-color:transparent}
+.btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+.btn.ghost{background:transparent}
+.btn.danger{color:var(--bad)}
+.btn.sm{min-height:36px;padding:6px 12px;font-size:.86rem;border-radius:10px}
+.btn.wide{width:100%}
+.btn[disabled]{opacity:.5;cursor:default}
+.linkbtn{font:inherit;background:none;border:0;padding:0;color:var(--accent);font-weight:600;cursor:pointer}
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field>span{font-size:.82rem;color:var(--muted);font-weight:500}
+input[type=text],input[type=email],input[type=password],input[type=number],input[type=date],input[type=search],select,textarea{
+  font:inherit;color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;min-height:44px;width:100%;min-width:0}
+textarea{min-height:88px;resize:vertical}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form{display:flex;flex-direction:column;gap:14px}
+.err{color:var(--bad);font-size:.86rem;font-weight:500}
+.checks{display:flex;flex-wrap:wrap;gap:8px}
+.check{position:relative}
+.check input{position:absolute;opacity:0;width:1px;height:1px}
+.check span{display:inline-flex;align-items:center;font-size:.86rem;font-weight:500;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
+.check input:checked+span{background:var(--accent-soft);border-color:var(--accent);color:var(--ink);font-weight:600}
+.check input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+
+/* Cards */
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
 .status{display:flex;align-items:center;gap:12px;background:var(--accent-soft);border-radius:14px;padding:12px 14px}
+.status.warn{background:var(--gold-soft)}
 .status .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex:none;box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent)}
-.status p{font-size:.9rem;min-width:0}
+.status.off .dot{background:var(--muted);box-shadow:none}
+.status.warn .dot{background:var(--gold);box-shadow:none}
+.status>div{min-width:0;flex:1;display:flex;flex-direction:column;gap:2px;font-size:.9rem}
 .status strong{font-weight:700}
 
 .section{display:flex;flex-direction:column;gap:10px}
-.jobs{display:flex;flex-direction:column;gap:12px;list-style:none;margin:0;padding:0}
+.section-h{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
+.toolbar{display:flex;flex-direction:column;gap:10px}
+.filters{display:flex;gap:8px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
+.filters::-webkit-scrollbar{display:none}
+.filters select{width:auto;min-height:38px;padding:6px 10px;font-size:.86rem;border-radius:999px;flex:none}
+.chips{display:flex;gap:8px;flex-wrap:wrap}
+.chip{font:inherit;font-size:.84rem;font-weight:600;padding:6px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+
+.jobs{display:flex;flex-direction:column;gap:12px}
 .job{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px;box-shadow:0 1px 2px var(--shadow)}
+.job-open{all:unset;display:flex;flex-direction:column;gap:12px;cursor:pointer;border-radius:10px}
+.job-open:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
 .job-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
 .job-h>div{min-width:0;display:flex;flex-direction:column;gap:3px}
 .who{font-size:.86rem;color:var(--muted)}
 .match{flex:none;font-size:.78rem;font-weight:700;color:var(--gold);background:var(--gold-soft);padding:4px 9px;border-radius:999px;white-space:nowrap}
-.facts{display:grid;grid-template-columns:1fr 1fr;gap:8px 14px}
-.fact{display:flex;align-items:center;gap:8px;font-size:.88rem;min-width:0}
-.fact svg{width:16px;height:16px;flex:none;color:var(--muted)}
-.fact span{min-width:0}
-.pay{font-family:var(--f-display);font-weight:600;font-size:1.25rem;letter-spacing:-.01em}
+.match.hi{color:var(--accent);background:var(--accent-soft)}
+.match.lo{color:var(--muted);background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+.facts{display:flex;flex-wrap:wrap;gap:6px 14px}
+.fact{display:flex;align-items:center;gap:6px;font-size:.86rem;min-width:0}
+.fact svg{width:15px;height:15px;flex:none;color:var(--muted)}
+.pay{font-family:var(--f-display);font-weight:600;font-size:1.2rem;letter-spacing:-.01em}
 .pay small{font-family:var(--f-body);font-size:.8rem;font-weight:500;color:var(--muted);letter-spacing:0}
-.job-f{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:12px;border-top:1px solid var(--line);font-size:.8rem}
-.queued{display:inline-flex;align-items:center;gap:6px;font-weight:600;color:var(--accent)}
-.queued svg{width:14px;height:14px}
+.job-f{display:flex;align-items:center;justify-content:space-between;gap:10px;padding-top:12px;border-top:1px solid var(--line);font-size:.82rem}
+.tag{display:inline-flex;align-items:center;gap:6px;font-weight:600;color:var(--accent);font-size:.84rem}
+.tag svg{width:14px;height:14px}
+.empty{text-align:center;padding:28px 16px;color:var(--muted);display:flex;flex-direction:column;gap:10px;align-items:center}
 
-/* Applied */
 .state{flex:none;font-size:.78rem;font-weight:700;padding:4px 9px;border-radius:999px;white-space:nowrap}
 .state.interview{color:var(--accent);background:var(--accent-soft)}
 .state.viewed{color:var(--gold);background:var(--gold-soft)}
 .state.sent{color:var(--muted);box-shadow:inset 0 0 0 1px var(--line)}
-.track{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;list-style:none;margin:0;padding:0}
+.state.rejected{color:var(--bad);background:var(--bad-soft)}
+.state.withdrawn{color:var(--muted);background:transparent;box-shadow:inset 0 0 0 1px var(--line);text-decoration:line-through}
+.track{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:6px}
 .track li{display:flex;flex-direction:column;gap:6px;font-size:.74rem;color:var(--muted)}
 .track li::before{content:"";height:4px;border-radius:2px;background:var(--line)}
 .track li.done{color:var(--ink);font-weight:600}
 .track li.done::before{background:var(--accent)}
+.track li.fail{color:var(--bad);font-weight:600}
+.track li.fail::before{background:var(--bad)}
 
 /* Profile */
-.who-card{display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;padding-block:6px 4px}
-.avatar{width:104px;height:104px;border-radius:50%;border:0;padding:0;cursor:pointer;position:relative;
-  background:var(--accent);color:var(--accent-ink);font-family:var(--f-display);font-weight:800;font-size:2.2rem;letter-spacing:-.02em;
+.who-card{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding-block:6px 4px}
+.avatar{width:96px;height:96px;border-radius:50%;border:0;padding:0;cursor:pointer;position:relative;
+  background:var(--accent);color:var(--accent-ink);font-family:var(--f-display);font-weight:800;font-size:2rem;letter-spacing:-.02em;
   display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 0 0 4px var(--surface),0 0 0 5px var(--line)}
 .avatar img{width:100%;height:100%;object-fit:cover;display:block}
-.avatar .cam{position:absolute;right:4px;bottom:4px;width:28px;height:28px;border-radius:50%;background:var(--surface);color:var(--ink);
-  display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px var(--shadow)}
-.avatar .cam svg{width:15px;height:15px}
-.photo-hint{font-size:.8rem;color:var(--muted)}
+.avatar .cam{position:absolute;right:3px;bottom:3px;width:26px;height:26px;border-radius:50%;background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px var(--shadow)}
+.avatar .cam svg{width:14px;height:14px}
 .role{font-size:.92rem;color:var(--muted)}
 .sr{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
-
 .list{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
-.row{display:grid;grid-template-columns:7.5rem minmax(0,1fr);gap:12px;padding:13px 16px;align-items:baseline}
-.row+.row{border-top:1px solid var(--line)}
+.row{display:grid;grid-template-columns:8rem minmax(0,1fr);gap:12px;padding:12px 16px;align-items:baseline}
+.row+.row,.list>*+*{border-top:1px solid var(--line)}
 .row dt{font-size:.84rem;color:var(--muted)}
 .row dd{font-weight:500;overflow-wrap:anywhere}
-.cv{display:flex;align-items:center;gap:12px;padding:13px 16px}
+.meter{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.cv{display:flex;align-items:center;gap:12px;padding:12px 16px}
 .cv .doc{width:38px;height:46px;border-radius:6px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;letter-spacing:.04em;flex:none}
-.cv div{min-width:0;display:flex;flex-direction:column;gap:2px}
+.cv>div{min-width:0;flex:1;display:flex;flex-direction:column;gap:2px}
 .cv strong{font-weight:600;overflow-wrap:anywhere}
 .cv span{font-size:.8rem;color:var(--muted)}
-.toggle-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:13px 16px;border-top:1px solid var(--line)}
-.toggle-row div{display:flex;flex-direction:column;gap:2px;min-width:0}
-.toggle-row span{font-size:.8rem;color:var(--muted)}
+.cv-actions{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 12px}
+.setting{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px}
+.setting>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.setting span{font-size:.8rem;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:none}
+.seg button{font:inherit;font-size:.84rem;font-weight:600;background:transparent;color:var(--ink);border:0;padding:8px 12px;cursor:pointer;min-height:38px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
 .switch{width:50px;height:30px;border-radius:999px;background:var(--line);border:0;padding:0;position:relative;cursor:pointer;flex:none}
 .switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgb(0 0 0 / .25)}
 .switch[aria-checked="true"]{background:var(--accent)}
 .switch[aria-checked="true"]::after{left:23px}
+input[type=range]{width:100%;accent-color:var(--accent);margin:0}
+.range-row{display:grid;grid-template-columns:minmax(0,1fr) 3.2rem;gap:10px;align-items:center;padding:0 16px 14px}
+.range-row output{text-align:right;font-weight:700}
 .sample{font-size:.78rem;color:var(--muted);text-align:center;text-wrap:balance}
+.skills{display:flex;flex-wrap:wrap;gap:6px}
+.skill{font-size:.8rem;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--ink)}
+.skill.miss{background:transparent;box-shadow:inset 0 0 0 1px var(--line);color:var(--muted)}
 
-/* Tab bar */
+/* Sheet */
+.sheet-wrap{position:fixed;inset:0;z-index:30;background:var(--scrim);display:flex;align-items:flex-end;justify-content:center;
+  padding-top:calc(24px + env(safe-area-inset-top,0px))}
+.sheet{background:var(--bg);width:100%;max-width:520px;max-height:100%;overflow:auto;border-radius:20px 20px 0 0;
+  padding:18px max(16px,env(safe-area-inset-right,0px)) calc(24px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px));
+  display:flex;flex-direction:column;gap:16px}
+.sheet-h{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;position:sticky;top:-18px;background:var(--bg);padding-block:6px;z-index:1}
+.sheet-h>div{min-width:0;display:flex;flex-direction:column;gap:4px}
+.x{font:inherit;width:36px;height:36px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer;flex:none;display:flex;align-items:center;justify-content:center}
+.x svg{width:16px;height:16px}
+.why{display:flex;flex-direction:column;gap:8px}
+.why li{display:flex;align-items:flex-start;gap:8px;font-size:.88rem}
+.why li b{flex:none;width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.7rem;margin-top:1px}
+.why li.ok b{background:var(--accent-soft);color:var(--accent)}
+.why li.no b{background:var(--bad-soft);color:var(--bad)}
+.prose{white-space:pre-line}
+.actions{display:flex;gap:10px;flex-wrap:wrap}
+.actions .btn{flex:1}
+
+/* Admin */
+.adm-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px}
+.adm-row>div{min-width:0;display:flex;flex-direction:column;gap:2px}
+.adm-row strong{font-weight:600;overflow-wrap:anywhere}
+.adm-row .btns{display:flex;gap:6px;flex:none}
+.pin{display:flex;gap:10px;justify-content:center}
+.pin input{width:3.2rem;text-align:center;font-size:1.4rem;font-weight:700;padding:8px 0}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:2px}
+.stat b{font-family:var(--f-display);font-size:1.4rem;font-weight:800}
+.stat span{font-size:.76rem;color:var(--muted)}
+
+/* Tabs, toast */
 .tabs{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);
   padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
   padding-top:8px;padding-bottom:calc(8px + env(safe-area-inset-bottom,0px))}
 .tabs-in{max-width:480px;margin:0 auto;display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.tab{font:inherit;font-size:.74rem;font-weight:600;background:none;border:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;border-radius:10px;-webkit-tap-highlight-color:transparent}
+.tab{font:inherit;font-size:.74rem;font-weight:600;background:none;border:0;color:var(--muted);display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 0;cursor:pointer;border-radius:10px;position:relative;-webkit-tap-highlight-color:transparent}
 .tab svg{width:24px;height:24px}
 .tab[aria-current="page"]{color:var(--accent)}
+.badge{position:absolute;top:2px;left:calc(50% + 6px);min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--bad);color:#fff;font-size:.68rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom,0px));z-index:40;
+  background:var(--ink);color:var(--bg);padding:10px 16px;border-radius:999px;font-size:.88rem;font-weight:500;max-width:calc(100% - 32px);text-align:center;box-shadow:0 6px 20px var(--shadow)}
+.confirm{display:flex;flex-direction:column;gap:10px;background:var(--bad-soft);border-radius:12px;padding:12px}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion: no-preference){.switch::after{transition:left .18s ease}.switch{transition:background-color .18s}}
-@media (max-width:360px){.facts{grid-template-columns:1fr}.row{grid-template-columns:6.5rem minmax(0,1fr)}}
+@media (max-width:360px){.grid2{grid-template-columns:1fr}.row{grid-template-columns:6.5rem minmax(0,1fr)}.stats{grid-template-columns:1fr 1fr}}
 </style>
 
 <div class="app">
   <header class="topline">
-    <span class="wordmark"><i aria-hidden="true"></i>Jobs</span>
-    <span class="pill">Concept demo</span>
+    <span class="wordmark"><i aria-hidden="true"></i>Job Auto</span>
+    <span class="pill" id="topPill">Test version</span>
   </header>
-
-  <!-- Page 1: Jobs -->
-  <main id="page-jobs" class="app">
-    <div class="hello">
-      <h1>Hi Thabang</h1>
-      <p class="muted">3 new housekeeper jobs in Gauteng you can apply for.</p>
-    </div>
-
-    <div class="status">
-      <span class="dot" aria-hidden="true"></span>
-      <p><strong>Auto-apply is on.</strong> Your CV goes to every job that matches your preferences.</p>
-    </div>
-
-    <section class="section" aria-labelledby="jobsHead">
-      <h2 id="jobsHead">New jobs for you</h2>
-      <ul class="jobs">
-        <li class="job">
-          <div class="job-h">
-            <div><h3>Live-out housekeeper</h3><p class="who">Private household · Sandton</p></div>
-            <span class="match num">96% match</span>
-          </div>
-          <p class="pay num">R6&#8239;500 <small>per month</small></p>
-          <div class="facts">
-            <p class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span>Sandton, Johannesburg</span></p>
-            <p class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="num">Mon–Fri, 07:00–16:00</span></p>
-          </div>
-          <div class="job-f"><span class="muted">Posted today</span><span class="queued"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>Ready to apply</span></div>
-        </li>
-
-        <li class="job">
-          <div class="job-h">
-            <div><h3>Housekeeper and laundry</h3><p class="who">Private household · Centurion</p></div>
-            <span class="match num">91% match</span>
-          </div>
-          <p class="pay num">R5&#8239;800 <small>per month</small></p>
-          <div class="facts">
-            <p class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span>Centurion, Pretoria</span></p>
-            <p class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Mon, Wed and Fri</span></p>
-          </div>
-          <div class="job-f"><span class="muted">Posted yesterday</span><span class="queued"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>Ready to apply</span></div>
-        </li>
-
-        <li class="job">
-          <div class="job-h">
-            <div><h3>Weekend housekeeper</h3><p class="who">Guesthouse · Midrand</p></div>
-            <span class="match num">88% match</span>
-          </div>
-          <p class="pay num">R320 <small>per day</small></p>
-          <div class="facts">
-            <p class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg><span>Midrand, Gauteng</span></p>
-            <p class="fact"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span class="num">Sat–Sun, 08:00–15:00</span></p>
-          </div>
-          <div class="job-f"><span class="muted">Posted 2 days ago</span><span class="queued"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>Ready to apply</span></div>
-        </li>
-      </ul>
-    </section>
-  </main>
-
-  <!-- Page 2: Applied jobs -->
-  <main id="page-applied" class="app" hidden>
-    <div class="hello">
-      <h1>Applied jobs</h1>
-      <p class="muted">Jobs that auto-apply sent your CV to.</p>
-    </div>
-
-    <div class="status">
-      <span class="dot" aria-hidden="true"></span>
-      <p><strong>3 applications this week.</strong> One employer wants to interview you.</p>
-    </div>
-
-    <section class="section" aria-labelledby="appliedHead">
-      <h2 id="appliedHead">Your applications</h2>
-      <ul class="jobs">
-        <li class="job">
-          <div class="job-h">
-            <div><h3>Housekeeper and nanny</h3><p class="who">Private household · Randburg</p></div>
-            <span class="state interview">Interview</span>
-          </div>
-          <p class="pay num">R6&#8239;000 <small>per month</small></p>
-          <ol class="track" aria-label="Application progress">
-            <li class="done">Sent</li><li class="done">Viewed</li><li class="done">Interview</li>
-          </ol>
-          <div class="job-f"><span class="muted num">Auto-applied 14 Oct 2026</span><span class="queued">Employer replied</span></div>
-        </li>
-
-        <li class="job">
-          <div class="job-h">
-            <div><h3>Housekeeper</h3><p class="who">Private household · Kempton Park</p></div>
-            <span class="state viewed">Viewed</span>
-          </div>
-          <p class="pay num">R5&#8239;600 <small>per month</small></p>
-          <ol class="track" aria-label="Application progress">
-            <li class="done">Sent</li><li class="done">Viewed</li><li>Interview</li>
-          </ol>
-          <div class="job-f"><span class="muted num">Auto-applied 13 Oct 2026</span><span class="muted">CV opened by employer</span></div>
-        </li>
-
-        <li class="job">
-          <div class="job-h">
-            <div><h3>Office housekeeper</h3><p class="who">Small office · Rosebank</p></div>
-            <span class="state sent">Sent</span>
-          </div>
-          <p class="pay num">R5&#8239;500 <small>per month</small></p>
-          <ol class="track" aria-label="Application progress">
-            <li class="done">Sent</li><li>Viewed</li><li>Interview</li>
-          </ol>
-          <div class="job-f"><span class="muted num">Auto-applied 11 Oct 2026</span><span class="muted">Waiting for employer</span></div>
-        </li>
-      </ul>
-    </section>
-  </main>
-
-  <!-- Page 3: Profile -->
-  <main id="page-profile" class="app" hidden>
-    <div class="who-card">
-      <button type="button" class="avatar" id="avatarBtn" aria-label="Change profile photo">
-        <span id="initials">TJ</span>
-        <img id="avatarImg" alt="" hidden>
-        <span class="cam" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg></span>
-      </button>
-      <input type="file" id="photoInput" class="sr" accept="image/*" tabindex="-1">
-      <p class="photo-hint" id="photoHint">Tap the photo to add your own</p>
-      <h1>Thabang Jameson</h1>
-      <p class="role">Housekeeper · Gauteng</p>
-    </div>
-
-    <section class="section" aria-labelledby="detailsHead">
-      <h2 id="detailsHead">Personal details</h2>
-      <dl class="list">
-        <div class="row"><dt>Name</dt><dd>Thabang</dd></div>
-        <div class="row"><dt>Surname</dt><dd>Jameson</dd></div>
-        <div class="row"><dt>ID number</dt><dd class="num">990231 5123 081</dd></div>
-        <div class="row"><dt>Phone</dt><dd class="num">071 000 4821</dd></div>
-        <div class="row"><dt>Address</dt><dd>18 Protea Close, Kempton Park, 1619</dd></div>
-      </dl>
-    </section>
-
-    <section class="section" aria-labelledby="prefHead">
-      <h2 id="prefHead">Job preferences</h2>
-      <dl class="list">
-        <div class="row"><dt>Job type</dt><dd>Housekeeper</dd></div>
-        <div class="row"><dt>Area</dt><dd>Gauteng</dd></div>
-        <div class="row"><dt>Work type</dt><dd>Live-out, full or part time</dd></div>
-        <div class="row"><dt>Minimum pay</dt><dd class="num">R5&#8239;500 per month</dd></div>
-      </dl>
-    </section>
-
-    <section class="section" aria-labelledby="cvHead">
-      <h2 id="cvHead">CV and auto-apply</h2>
-      <div class="list">
-        <div class="cv">
-          <span class="doc" aria-hidden="true">PDF</span>
-          <div><strong>Thabang_Jameson_CV.pdf</strong><span class="num">Updated 15 Oct 2026</span></div>
-        </div>
-        <div class="toggle-row">
-          <div><strong>Auto-apply</strong><span>Send my CV to matching jobs</span></div>
-          <button type="button" class="switch" id="autoSwitch" role="switch" aria-checked="true" aria-label="Auto-apply"></button>
-        </div>
-      </div>
-    </section>
-
-    <p class="sample">Sample profile for a concept demo. The name, ID number, phone number and address are made up.</p>
-  </main>
+  <div id="view" class="view" aria-live="polite"></div>
+  <p class="sample">Test version. Jobs and companies are made up. Everything you enter stays on this device.</p>
 </div>
 
-<nav class="tabs" aria-label="Pages">
+<nav class="tabs" id="tabs" aria-label="Pages" hidden>
   <div class="tabs-in">
-    <button type="button" class="tab" id="tab-jobs" data-page="jobs" aria-current="page">
+    <button type="button" class="tab" data-go="jobs">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2v2"/><path d="M3 13h18"/></svg>
       Jobs
     </button>
-    <button type="button" class="tab" id="tab-applied" data-page="applied">
+    <button type="button" class="tab" data-go="applied">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 2 11 13"/><path d="M22 2 15 22l-4-9-9-4z"/></svg>
-      Applied
+      Applied<span class="badge" id="badge" hidden></span>
     </button>
-    <button type="button" class="tab" id="tab-profile" data-page="profile">
+    <button type="button" class="tab" data-go="profile">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 21c1.5-4 4.5-6 8-6s6.5 2 8 6"/></svg>
       Profile
     </button>
   </div>
 </nav>
 
+<div id="sheetRoot"></div>
+<div class="toast" id="toast" role="status" hidden></div>
+<input type="file" id="photoInput" class="sr" accept="image/*" tabindex="-1">
+<input type="file" id="cvInput" class="sr" accept=".pdf,.doc,.docx,application/pdf" tabindex="-1">
+
 <script>
 (function(){
-  var pages = {jobs: document.getElementById('page-jobs'), applied: document.getElementById('page-applied'), profile: document.getElementById('page-profile')};
-  var tabs = document.querySelectorAll('.tab');
+'use strict';
 
-  function show(name){
-    if(!pages[name]) name = 'jobs';
-    Object.keys(pages).forEach(function(k){ pages[k].hidden = (k !== name); });
-    tabs.forEach(function(t){
-      if(t.dataset.page === name) t.setAttribute('aria-current','page'); else t.removeAttribute('aria-current');
-    });
-    window.scrollTo(0,0);
-    try{ history.replaceState(null,'','#'+name); }catch(e){}
-  }
-  tabs.forEach(function(t){ t.addEventListener('click', function(){ show(t.dataset.page); }); });
-  var start = (location.hash || '').replace('#','');
-  show(pages[start] ? start : 'jobs');
+/* ---------- Reference data ---------- */
+var FIELDS = ['Supply chain','Data and analytics','IT and software','Finance and accounting','Engineering','Marketing','Human resources','Admin and customer service'];
+var TYPES = ['Internship','Learnership','Graduate programme','Entry-level job'];
+var QUALS = ['Matric','Diploma','Degree','Honours'];
+var PROVINCES = ['Gauteng','Western Cape','KwaZulu-Natal','Eastern Cape','Free State','Limpopo','Mpumalanga','North West','Northern Cape'];
+var MODES = ['On-site','Hybrid','Remote'];
+var TEST_EMAIL = 'thabang@test.com', TEST_PASS = 'jameson', DEFAULT_PIN = '2468';
+var DAY = 86400000, MIN = 60000;
 
-  // Profile photo: chosen on this device, shrunk, and kept only in this browser
-  var KEY = 'autoapply-demo-photo';
-  var btn = document.getElementById('avatarBtn');
-  var input = document.getElementById('photoInput');
-  var img = document.getElementById('avatarImg');
-  var initials = document.getElementById('initials');
-  var hint = document.getElementById('photoHint');
+function J(id,title,company,type,field,city,province,mode,qual,pay,posted,closes,skills,desc){
+  return {id:id,title:title,company:company,type:type,field:field,city:city,province:province,mode:mode,qual:qual,pay:pay,posted:posted,closes:closes,skills:skills,desc:desc};
+}
+var SEED_JOBS = [
+  J('j01','Supply Chain Graduate Programme','Kopano Logistics','Graduate programme','Supply chain','Johannesburg','Gauteng','Hybrid','Degree',14000,'2026-10-14','2026-11-30',['Excel','Procurement','SAP','Communication'],'A 12-month rotation through planning, procurement and warehousing.\n\nYou will work with real stock data, support supplier reviews and present one improvement project at the end of the year.'),
+  J('j02','Data Analyst Intern','Mzansi Analytics','Internship','Data and analytics','Cape Town','Western Cape','Remote','Degree',9500,'2026-10-13','2026-11-20',['Excel','Power BI','SQL','Python'],'Build dashboards for retail clients and clean messy sales data.\n\nFully remote, with a weekly check-in with your mentor.'),
+  J('j03','IT Support Learnership','Bluegum Tech','Learnership','IT and software','Pretoria','Gauteng','On-site','Matric',5000,'2026-10-15','2026-11-15',['Troubleshooting','Customer service','Windows'],'A 12-month NQF 5 learnership. Help staff with laptops, accounts and printers while you study towards your qualification.'),
+  J('j04','Junior Accountant','Ubuntu Ledger Partners','Entry-level job','Finance and accounting','Durban','KwaZulu-Natal','On-site','Degree',16500,'2026-10-10','2026-11-10',['Excel','Pastel','Reconciliations'],'Prepare monthly reconciliations and support the year-end audit for small business clients.'),
+  J('j05','Marketing Intern','Jacaranda Media','Internship','Marketing','Johannesburg','Gauteng','Hybrid','Diploma',7000,'2026-10-12','2026-11-12',['Social media','Canva','Copywriting'],'Plan and post content for three brand accounts and report on what worked each month.'),
+  J('j06','HR Graduate Trainee','Baobab Mining Services','Graduate programme','Human resources','Rustenburg','North West','On-site','Degree',12000,'2026-10-09','2026-11-25',['Communication','Excel','Recruitment'],'Support recruitment, onboarding and training records at a busy mine site.'),
+  J('j07','Procurement Learnership','Highveld Foods','Learnership','Supply chain','Midrand','Gauteng','On-site','Matric',6000,'2026-10-15','2026-12-01',['Excel','Procurement','Communication'],'Learn how a food manufacturer buys ingredients and packaging, from quotes to purchase orders.'),
+  J('j08','Junior Software Developer','Karoo Code','Entry-level job','IT and software','Remote','Gauteng','Remote','Diploma',18000,'2026-10-11','2026-11-18',['JavaScript','HTML','Git'],'Build features for small business web apps in a team of five. Fully remote.'),
+  J('j09','Finance Graduate Programme','Sable Financial','Graduate programme','Finance and accounting','Sandton','Gauteng','Hybrid','Degree',15000,'2026-10-08','2026-11-28',['Excel','Financial analysis','Communication'],'Rotate through budgeting, reporting and treasury over 18 months.'),
+  J('j10','Mechanical Engineering Graduate','Vaalrand Engineering','Graduate programme','Engineering','Vanderbijlpark','Gauteng','On-site','Degree',17000,'2026-10-07','2026-12-05',['AutoCAD','Maintenance planning','Problem solving'],'Work with plant engineers on maintenance planning and small design changes.'),
+  J('j11','Admin Intern','Protea Property Group','Internship','Admin and customer service','Bloemfontein','Free State','On-site','Diploma',6500,'2026-10-14','2026-11-14',['Excel','Filing','Customer service'],'Keep lease files up to date, answer tenant queries and help with monthly reports.'),
+  J('j12','Logistics Coordinator','Coastline Freight','Entry-level job','Supply chain','Gqeberha','Eastern Cape','On-site','Diploma',11000,'2026-10-12','2026-11-22',['Excel','Scheduling','Communication'],'Book trucks, track deliveries and keep customers updated on their shipments.'),
+  J('j13','Data Science Learnership','Ndlovu Insights','Learnership','Data and analytics','Johannesburg','Gauteng','Hybrid','Matric',5500,'2026-10-16','2026-12-10',['Excel','Python','Statistics'],'A 12-month learnership in data science, with three days a week in the office.'),
+  J('j14','Customer Success Associate','Imbali Telecoms','Entry-level job','Admin and customer service','Cape Town','Western Cape','Hybrid','Matric',8500,'2026-10-10','2026-11-09',['Customer service','Communication'],'Help new business customers set up their accounts and solve their first problems.'),
+  J('j15','Civil Engineering Intern','Limpopo Roadworks','Internship','Engineering','Polokwane','Limpopo','On-site','Degree',8000,'2026-10-09','2026-11-30',['AutoCAD','Site inspection'],'Join site inspections on rural road projects and help prepare progress reports.'),
+  J('j16','Social Media Learnership','Shosholoza Creative','Learnership','Marketing','Durban','KwaZulu-Natal','Remote','Matric',4500,'2026-10-13','2026-11-13',['Social media','Canva'],'Create short videos and posts for small local brands while you complete a digital marketing qualification.'),
+  J('j17','Graduate Business Analyst','Mopane Consulting','Graduate programme','Data and analytics','Pretoria','Gauteng','Hybrid','Degree',16000,'2026-10-15','2026-12-01',['Excel','Power BI','Process mapping','Communication'],'Map how client teams work today, find the slow steps and help design better processes.'),
+  J('j18','Mining Operations Graduate','Witwatersrand Minerals','Graduate programme','Engineering','Carletonville','Gauteng','On-site','Degree',15500,'2026-10-11','2026-12-03',['Problem solving','Excel','Safety'],'A two-year programme across underground and surface operations.'),
+  J('j19','Payroll Intern','Amandla Payroll Services','Internship','Finance and accounting','Mbombela','Mpumalanga','On-site','Diploma',7500,'2026-10-08','2026-11-08',['Excel','Payroll','Attention to detail'],'Help run monthly payroll for 40 small business clients.'),
+  J('j20','Warehouse Supervisor Trainee','Kopano Logistics','Entry-level job','Supply chain','Kempton Park','Gauteng','On-site','Diploma',10000,'2026-10-16','2026-11-30',['Excel','Stock control','Leadership'],'Lead a small picking team on the night shift after a three-month training period.')
+];
 
-  function setPhoto(src){
-    if(!src) return;
-    img.src = src; img.hidden = false; initials.hidden = true;
-    hint.textContent = 'Tap the photo to change it';
-  }
-  try{ setPhoto(localStorage.getItem(KEY)); }catch(e){}
+/* ---------- Storage ---------- */
+var KEY = 'jobauto:v1';
+var mem = null;
+function load(){
+  if(mem) return mem;
+  try{ var raw = localStorage.getItem(KEY); if(raw) mem = JSON.parse(raw); }catch(e){}
+  return mem;
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(mem)); }catch(e){} }
+function hashPass(s){
+  // Demo-only hash so passwords are not stored as plain text on the device
+  var h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+  for(var i=0;i<s.length;i++){ var c=s.charCodeAt(i); h1=Math.imul(h1^c,2654435761); h2=Math.imul(h2^c,1597334677); }
+  h1=Math.imul(h1^(h1>>>16),2246822507)^Math.imul(h2^(h2>>>13),3266489909);
+  h2=Math.imul(h2^(h2>>>16),2246822507)^Math.imul(h1^(h1>>>13),3266489909);
+  return (h2>>>0).toString(16)+(h1>>>0).toString(16);
+}
+function seedState(){
+  var now = Date.now();
+  var s = {
+    version:1, pin:DEFAULT_PIN, session:null,
+    jobs: JSON.parse(JSON.stringify(SEED_JOBS)),
+    users:{}, apps:[]
+  };
+  s.users[TEST_EMAIL] = {
+    email:TEST_EMAIL, pass:hashPass(TEST_PASS), created:now,
+    name:'Thabang', surname:'Jameson', phone:'071 000 4821', city:'Kempton Park', province:'Gauteng',
+    qual:'Degree', study:'BCom Supply Chain Management', institution:'University of Johannesburg', gradYear:'2025',
+    skills:['Excel','Power BI','Procurement','SAP','Communication','Process mapping'],
+    experience:'Six-month admin internship at a logistics company. Volunteer maths tutor.',
+    prefs:{fields:['Supply chain','Data and analytics','Finance and accounting'],types:['Graduate programme','Internship','Entry-level job'],provinces:['Gauteng'],remote:true,minPay:8000},
+    cv:{name:'Thabang_Jameson_CV.pdf',size:182000,at:now-3*DAY,sample:true},
+    auto:{mode:'auto',min:75,paused:false}, lastSeen:now, photo:null
+  };
+  // Two earlier applications so the Applied page is not empty on first open
+  s.apps.push(mkApp(s,'j09',TEST_EMAIL,'one-tap',now-2*DAY,{viewAfter:3*60*60*1000,decideAfter:20*60*60*1000,outcome:'interview'}));
+  s.apps.push(mkApp(s,'j12',TEST_EMAIL,'auto',now-50*MIN,{viewAfter:20*MIN,decideAfter:56*MIN,outcome:'rejected'}));
+  return s;
+}
+function init(){
+  if(!load()){ mem = seedState(); save(); }
+  if(!mem.users[TEST_EMAIL]){ var fresh = seedState(); mem.users[TEST_EMAIL] = fresh.users[TEST_EMAIL]; save(); }
+}
 
-  btn.addEventListener('click', function(){ input.click(); });
-  input.addEventListener('change', function(){
-    var file = input.files && input.files[0];
-    if(!file) return;
-    var reader = new FileReader();
-    reader.onload = function(){
-      var raw = new Image();
-      raw.onload = function(){
-        var size = 320, c = document.createElement('canvas');
-        c.width = size; c.height = size;
-        var s = Math.min(raw.width, raw.height);
-        var sx = (raw.width - s)/2, sy = (raw.height - s)/2;
-        c.getContext('2d').drawImage(raw, sx, sy, s, s, 0, 0, size, size);
-        var out = c.toDataURL('image/jpeg', 0.85);
-        setPhoto(out);
-        try{ localStorage.setItem(KEY, out); }catch(e){}
-      };
-      raw.onerror = function(){ hint.textContent = 'That file could not be opened. Try a JPG or PNG photo.'; };
-      raw.src = reader.result;
+/* ---------- IndexedDB for CV files ---------- */
+var idb = null;
+function db(){
+  if(idb) return idb;
+  idb = new Promise(function(res,rej){
+    try{
+      var r = indexedDB.open('jobauto-files',1);
+      r.onupgradeneeded = function(){ r.result.createObjectStore('cv'); };
+      r.onsuccess = function(){ res(r.result); };
+      r.onerror = function(){ rej(r.error); };
+    }catch(e){ rej(e); }
+  });
+  return idb;
+}
+var cvMemory = {};
+function putCv(email,file){
+  cvMemory[email] = file;
+  return db().then(function(d){ return new Promise(function(res){ var t=d.transaction('cv','readwrite'); t.objectStore('cv').put(file,email); t.oncomplete=function(){res();}; t.onerror=function(){res();}; }); }).catch(function(){});
+}
+function getCv(email){
+  if(cvMemory[email]) return Promise.resolve(cvMemory[email]);
+  return db().then(function(d){ return new Promise(function(res){ var q=d.transaction('cv').objectStore('cv').get(email); q.onsuccess=function(){res(q.result||null);}; q.onerror=function(){res(null);}; }); }).catch(function(){ return null; });
+}
+function delCv(email){
+  delete cvMemory[email];
+  return db().then(function(d){ d.transaction('cv','readwrite').objectStore('cv').delete(email); }).catch(function(){});
+}
+
+/* ---------- Helpers ---------- */
+function $(s,r){ return (r||document).querySelector(s); }
+function $$(s,r){ return Array.prototype.slice.call((r||document).querySelectorAll(s)); }
+function esc(v){ return String(v==null?'':v).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function money(n){ return 'R' + Math.round(n).toLocaleString('en-ZA').replace(/,/g,' ').replace(/ /g,' '); }
+var MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtDate(iso){ var p = String(iso).split('-'); if(p.length<3) return iso; return (+p[2])+' '+MONTHS[+p[1]-1]+' '+p[0]; }
+function ago(t){
+  var d = Date.now()-t;
+  if(d < MIN) return 'just now';
+  if(d < 60*MIN) return Math.floor(d/MIN)+' min ago';
+  if(d < DAY) return Math.floor(d/3600000)+' h ago';
+  var days = Math.floor(d/DAY); return days===1?'yesterday':days+' days ago';
+}
+function postedText(iso){
+  var t = new Date(iso+'T08:00:00').getTime(); var days = Math.floor((Date.now()-t)/DAY);
+  if(isNaN(days)) return ''; if(days<=0) return 'Posted today'; if(days===1) return 'Posted yesterday'; return 'Posted '+days+' days ago';
+}
+function isClosed(job){ return new Date(job.closes+'T23:59:59').getTime() < Date.now(); }
+function uid(){ return Math.random().toString(36).slice(2,9); }
+function rand(seedStr){ var h=0; for(var i=0;i<seedStr.length;i++){ h=Math.imul(h^seedStr.charCodeAt(i),2654435761); } return ((h>>>0)%1000)/1000; }
+function initials(u){ return ((u.name||'?')[0]+((u.surname||'')[0]||'')).toUpperCase(); }
+function me(){ return mem.session ? mem.users[mem.session] : null; }
+function jobById(id){ for(var i=0;i<mem.jobs.length;i++) if(mem.jobs[i].id===id) return mem.jobs[i]; return null; }
+
+var toastTimer;
+function toast(msg){ var t=$('#toast'); t.textContent=msg; t.hidden=false; clearTimeout(toastTimer); toastTimer=setTimeout(function(){ t.hidden=true; },3200); }
+
+var ICON = {
+  pin:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s7-6.2 7-12a7 7 0 0 0-14 0c0 5.8 7 12 7 12z"/><circle cx="12" cy="10" r="2.5"/></svg>',
+  type:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19V5a2 2 0 0 1 2-2h12v18H6a2 2 0 0 1-2-2z"/><path d="M8 7h6M8 11h6"/></svg>',
+  cap:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 9l10-5 10 5-10 5z"/><path d="M6 11v5c3 2 9 2 12 0v-5"/></svg>',
+  home:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/></svg>',
+  check:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12l5 5 9-10"/></svg>',
+  x:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  cam:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>'
+};
+
+/* ---------- Matching ---------- */
+function qualLevel(q){ return QUALS.indexOf(q); }
+function match(user, job){
+  var p = user.prefs||{}, reasons = [], score = 0;
+  var fieldOk = (p.fields||[]).indexOf(job.field) > -1;
+  if(fieldOk) score += 30; reasons.push({ok:fieldOk, text: fieldOk ? 'In a field you want: '+job.field : job.field+' is not one of your fields'});
+  var typeOk = (p.types||[]).indexOf(job.type) > -1;
+  if(typeOk) score += 15; reasons.push({ok:typeOk, text: typeOk ? job.type+' is a type you want' : job.type+' is not a type you picked'});
+  var qualOk = qualLevel(user.qual) >= qualLevel(job.qual);
+  if(qualOk) score += 20; reasons.push({ok:qualOk, text: qualOk ? 'You meet the '+job.qual.toLowerCase()+' requirement' : 'Needs at least a '+job.qual.toLowerCase()});
+  var locOk = job.mode==='Remote' ? !!p.remote || (p.provinces||[]).indexOf(job.province)>-1 : (p.provinces||[]).indexOf(job.province) > -1;
+  if(locOk) score += 15; reasons.push({ok:locOk, text: locOk ? (job.mode==='Remote' ? 'Remote, and you are open to remote work' : job.province+' is a province you picked') : (job.mode==='Remote' ? 'Remote, but you have not chosen remote work' : job.province+' is outside your provinces')});
+  var payOk = !p.minPay || job.pay >= p.minPay;
+  score += payOk ? 10 : Math.max(0, Math.round(10 * job.pay / p.minPay) - 5);
+  reasons.push({ok:payOk, text: payOk ? money(job.pay)+' meets your minimum of '+money(p.minPay||0) : money(job.pay)+' is below your minimum of '+money(p.minPay)});
+  var mine = (user.skills||[]).map(function(s){ return s.toLowerCase(); });
+  var have = job.skills.filter(function(s){ return mine.indexOf(s.toLowerCase()) > -1; });
+  score += Math.round(10 * have.length / Math.max(1, job.skills.length));
+  reasons.push({ok: have.length>0, text: have.length ? 'You have '+have.length+' of '+job.skills.length+' listed skills' : 'None of the listed skills are on your profile'});
+  return {score: Math.max(0, Math.min(100, score)), qualOk: qualOk, locOk: locOk, reasons: reasons, have: have};
+}
+function profileGaps(u){
+  var g = [];
+  if(!u.name || !u.surname) g.push('your name');
+  if(!u.qual) g.push('your highest qualification');
+  if(!u.prefs || !(u.prefs.fields||[]).length) g.push('the fields you want');
+  if(!u.prefs || !(u.prefs.types||[]).length) g.push('the job types you want');
+  if(!u.prefs || (!(u.prefs.provinces||[]).length && !u.prefs.remote)) g.push('where you want to work');
+  if(!u.cv) g.push('your CV');
+  return g;
+}
+function completeness(u){
+  var parts = [u.name&&u.surname, u.phone, u.city&&u.province, u.qual, u.study, (u.skills||[]).length, u.experience, (u.prefs&&(u.prefs.fields||[]).length), (u.prefs&&(u.prefs.types||[]).length), u.cv];
+  return Math.round(100 * parts.filter(Boolean).length / parts.length);
+}
+
+/* ---------- Applications and simulated employer replies ---------- */
+function mkApp(s, jobId, email, method, at, plan){
+  var job = null; for(var i=0;i<s.jobs.length;i++) if(s.jobs[i].id===jobId) job=s.jobs[i];
+  var u = s.users[email] || mem && mem.users[email];
+  var id = 'a'+uid();
+  if(!plan){
+    var sc = job && u ? match(u, job).score : 60;
+    var r = rand(id);
+    var interviewChance = sc >= 90 ? 0.6 : sc >= 75 ? 0.4 : 0.2;
+    plan = {
+      viewAfter: Math.round((1 + rand(id+'v')*1.5) * MIN),
+      decideAfter: Math.round((3 + rand(id+'d')*3) * MIN),
+      outcome: r < interviewChance ? 'interview' : 'rejected'
     };
-    reader.readAsDataURL(file);
-    input.value = '';
+  }
+  return {id:id, jobId:jobId, email:email, method:method, at:at, plan:plan, withdrawnAt:null,
+    jobTitle: job?job.title:'', company: job?job.company:''};
+}
+function statusOf(a, now){
+  now = now || Date.now();
+  if(a.withdrawnAt) return {key:'withdrawn', label:'Withdrawn', changed:a.withdrawnAt};
+  var tView = a.at + a.plan.viewAfter, tDecide = a.at + a.plan.decideAfter;
+  if(now >= tDecide) return a.plan.outcome==='interview' ? {key:'interview', label:'Interview', changed:tDecide} : {key:'rejected', label:'Not successful', changed:tDecide};
+  if(now >= tView) return {key:'viewed', label:'Viewed', changed:tView};
+  return {key:'sent', label:'Sent', changed:a.at};
+}
+function myApps(){ var u=me(); return mem.apps.filter(function(a){ return u && a.email===u.email; }).sort(function(a,b){ return b.at-a.at; }); }
+function appFor(jobId){ var u=me(); for(var i=0;i<mem.apps.length;i++){ var a=mem.apps[i]; if(u && a.email===u.email && a.jobId===jobId && !a.withdrawnAt) return a; } return null; }
+function apply(jobId, method){
+  var u = me(); if(!u || appFor(jobId)) return null;
+  var a = mkApp(mem, jobId, u.email, method, Date.now());
+  mem.apps.push(a); save(); return a;
+}
+function withdraw(appId){
+  mem.apps.forEach(function(a){ if(a.id===appId) a.withdrawnAt = Date.now(); }); save();
+}
+function runAuto(silent){
+  var u = me(); if(!u || u.auto.mode!=='auto' || u.auto.paused || profileGaps(u).length) return 0;
+  var n = 0;
+  mem.jobs.forEach(function(job){
+    if(isClosed(job) || appFor(job.id)) return;
+    var withdrawn = mem.apps.some(function(a){ return a.email===u.email && a.jobId===job.id && a.withdrawnAt; });
+    if(withdrawn) return;
+    var m = match(u, job);
+    if(m.qualOk && m.locOk && m.score >= u.auto.min){ mem.apps.push(mkApp(mem, job.id, u.email, 'auto', Date.now())); n++; }
+  });
+  if(n){ save(); if(!silent) toast('Auto-apply sent your CV to '+n+' new '+(n===1?'job':'jobs')+'.'); }
+  return n;
+}
+function unseen(){
+  var u = me(); if(!u) return 0; var now = Date.now();
+  return myApps().filter(function(a){ var s=statusOf(a,now); return s.key!=='sent' && s.key!=='withdrawn' && s.changed > (u.lastSeen||0); }).length;
+}
+
+/* ---------- Router ---------- */
+var route = 'jobs', adminOpen = false;
+var ui = {q:'', type:'', field:'', province:'', sort:'match', appFilter:'all'};
+function go(r){
+  route = r;
+  try{ history.replaceState(null,'','#'+r); }catch(e){}
+  closeSheet(); render(); window.scrollTo(0,0);
+}
+function render(){
+  var u = me();
+  if(!u && route!=='signup' && route!=='admin') route = 'login';
+  if(u && (route==='login'||route==='signup')) route = 'jobs';
+  var showTabs = !!u && route!=='admin';
+  $('#tabs').hidden = !showTabs;
+  document.body.classList.toggle('no-tabs', !showTabs);
+  $$('.tab').forEach(function(t){ if(t.dataset.go===route) t.setAttribute('aria-current','page'); else t.removeAttribute('aria-current'); });
+  $('#topPill').textContent = route==='admin' ? 'Admin' : 'Test version';
+  if(u && route==='applied'){ u.lastSeen = Date.now(); save(); }
+  var b = unseen(); $('#badge').hidden = !b || route==='applied'; $('#badge').textContent = b;
+  var v = $('#view');
+  if(route==='login') v.innerHTML = viewLogin();
+  else if(route==='signup') v.innerHTML = viewSignup();
+  else if(route==='jobs') v.innerHTML = viewJobs();
+  else if(route==='applied') v.innerHTML = viewApplied();
+  else if(route==='profile') v.innerHTML = viewProfile();
+  else if(route==='admin') v.innerHTML = adminOpen ? viewAdmin() : viewPin();
+  bindView();
+}
+
+/* ---------- Views: auth ---------- */
+function viewLogin(){
+  return '<div class="hello"><h1>Log in</h1><p class="muted">Find graduate jobs and let Job Auto apply for you.</p></div>'+
+  '<form class="card form" id="loginForm" novalidate>'+
+    '<label class="field"><span>Email</span><input type="email" id="liEmail" autocomplete="username" required></label>'+
+    '<label class="field"><span>Password</span><input type="password" id="liPass" autocomplete="current-password" required></label>'+
+    '<p class="err" id="liErr" hidden></p>'+
+    '<button class="btn primary wide" type="submit">Log in</button>'+
+    '<button class="btn ghost wide" type="button" id="fillTest">Use the test account</button>'+
+  '</form>'+
+  '<p class="small muted" style="text-align:center">New here? <button class="linkbtn" data-go="signup">Create an account</button> · <button class="linkbtn" data-go="admin">Admin</button></p>';
+}
+function viewSignup(){
+  return '<div class="hello"><h1>Create an account</h1><p class="muted">It takes a minute. You can add your CV next.</p></div>'+
+  '<form class="card form" id="signupForm" novalidate>'+
+    '<div class="grid2"><label class="field"><span>Name</span><input type="text" id="suName" autocomplete="given-name" required></label>'+
+    '<label class="field"><span>Surname</span><input type="text" id="suSurname" autocomplete="family-name" required></label></div>'+
+    '<label class="field"><span>Email</span><input type="email" id="suEmail" autocomplete="email" required></label>'+
+    '<label class="field"><span>Password (at least 6 characters)</span><input type="password" id="suPass" autocomplete="new-password" required></label>'+
+    '<p class="err" id="suErr" hidden></p>'+
+    '<button class="btn primary wide" type="submit">Create account</button>'+
+  '</form>'+
+  '<p class="small muted" style="text-align:center">Already have an account? <button class="linkbtn" data-go="login">Log in</button></p>';
+}
+
+/* ---------- Views: jobs ---------- */
+function statusCard(u){
+  var gaps = profileGaps(u);
+  if(gaps.length) return '<div class="status warn"><span class="dot"></span><div><strong>Finish your profile to start applying.</strong><span>Still needed: '+esc(gaps.join(', '))+'.</span></div><button class="btn sm" data-go="profile">Finish</button></div>';
+  if(u.auto.paused) return '<div class="status off"><span class="dot"></span><div><strong>Auto-apply is paused.</strong><span>Nothing is sent until you turn it back on.</span></div><button class="btn sm" id="resumeAuto">Resume</button></div>';
+  if(u.auto.mode==='auto') return '<div class="status"><span class="dot"></span><div><strong>Auto-apply is on.</strong><span>Your CV goes to every job in your areas at '+u.auto.min+'% match or higher.</span></div></div>';
+  var waiting = mem.jobs.filter(function(j){ if(isClosed(j) || appFor(j.id)) return false; var m=match(u,j); return m.qualOk && m.locOk && m.score >= u.auto.min; }).length;
+  return '<div class="status"><span class="dot"></span><div><strong>One-tap apply.</strong><span>'+(waiting ? waiting+' strong '+(waiting===1?'match is':'matches are')+' waiting for you.' : 'You have applied to all your strong matches.')+'</span></div>'+(waiting?'<button class="btn sm primary" id="applyAll">Apply to '+waiting+'</button>':'')+'</div>';
+}
+function jobCard(u, job){
+  var m = match(u, job), a = appFor(job.id), cls = m.score>=80?'hi':m.score<50?'lo':'';
+  var foot;
+  if(a){ var s = statusOf(a); foot = '<span class="state '+s.key+'">'+esc(s.label)+'</span>'; }
+  else if(isClosed(job)) foot = '<span class="muted">Closed</span>';
+  else if(!m.qualOk) foot = '<span class="muted">Needs '+esc(job.qual.toLowerCase())+'</span>';
+  else foot = '<button class="btn sm primary" data-apply="'+job.id+'">Apply</button>';
+  return '<li class="job">'+
+    '<button class="job-open" data-job="'+job.id+'" aria-label="'+esc(job.title)+' at '+esc(job.company)+', details">'+
+      '<span class="job-h"><span style="min-width:0;display:flex;flex-direction:column;gap:3px"><span class="jt">'+esc(job.title)+'</span><span class="who">'+esc(job.company)+' · '+esc(job.type)+'</span></span><span class="match '+cls+' num">'+m.score+'% match</span></span>'+
+      '<span class="pay num">'+money(job.pay)+' <small>per month</small></span>'+
+      '<span class="facts"><span class="fact">'+ICON.pin+'<span>'+esc(job.city)+(job.city!=='Remote'?', '+esc(job.province):'')+'</span></span><span class="fact">'+ICON.home+'<span>'+esc(job.mode)+'</span></span><span class="fact">'+ICON.cap+'<span>'+esc(job.qual)+'</span></span></span>'+
+    '</button>'+
+    '<div class="job-f"><span class="muted">'+esc(postedText(job.posted))+'</span>'+foot+'</div>'+
+  '</li>';
+}
+function filteredJobs(u){
+  var q = ui.q.trim().toLowerCase();
+  var list = mem.jobs.filter(function(j){
+    if(ui.type && j.type!==ui.type) return false;
+    if(ui.field && j.field!==ui.field) return false;
+    if(ui.province && (ui.province==='Remote' ? j.mode!=='Remote' : j.province!==ui.province)) return false;
+    if(q && (j.title+' '+j.company+' '+j.city+' '+j.field+' '+j.skills.join(' ')).toLowerCase().indexOf(q)===-1) return false;
+    return true;
+  });
+  list.sort(function(a,b){
+    if(ui.sort==='new') return b.posted.localeCompare(a.posted);
+    if(ui.sort==='closing') return a.closes.localeCompare(b.closes);
+    if(ui.sort==='pay') return b.pay-a.pay;
+    return match(u,b).score - match(u,a).score;
+  });
+  return list;
+}
+function opts(list, val, first){ return '<option value="">'+first+'</option>'+list.map(function(x){ return '<option'+(x===val?' selected':'')+'>'+esc(x)+'</option>'; }).join(''); }
+function viewJobs(){
+  var u = me(), list = filteredJobs(u);
+  return '<div class="hello"><h1>Hi '+esc(u.name||'there')+'</h1><p class="muted">'+mem.jobs.filter(function(j){return !isClosed(j);}).length+' open graduate and entry-level jobs.</p></div>'+
+    statusCard(u)+
+    '<div class="toolbar">'+
+      '<input type="search" id="q" placeholder="Search jobs, companies, skills" value="'+esc(ui.q)+'" aria-label="Search jobs">'+
+      '<div class="filters">'+
+        '<select id="fSort" aria-label="Sort">'+['match','new','closing','pay'].map(function(k){ return '<option value="'+k+'"'+(ui.sort===k?' selected':'')+'>'+{match:'Best match',new:'Newest',closing:'Closing soon',pay:'Highest pay'}[k]+'</option>'; }).join('')+'</select>'+
+        '<select id="fType" aria-label="Job type">'+opts(TYPES, ui.type, 'All types')+'</select>'+
+        '<select id="fField" aria-label="Field">'+opts(FIELDS, ui.field, 'All fields')+'</select>'+
+        '<select id="fProv" aria-label="Province">'+opts(['Remote'].concat(PROVINCES), ui.province, 'Anywhere')+'</select>'+
+      '</div>'+
+    '</div>'+
+    '<section class="section"><div class="section-h"><h2>'+list.length+' '+(list.length===1?'job':'jobs')+'</h2>'+((ui.q||ui.type||ui.field||ui.province)?'<button class="linkbtn small" id="clearF">Clear filters</button>':'')+'</div>'+
+    (list.length ? '<ul class="jobs">'+list.map(function(j){ return jobCard(u,j); }).join('')+'</ul>' : '<div class="empty card"><strong>No jobs match these filters.</strong><button class="btn sm" id="clearF2">Clear filters</button></div>')+
+    '</section>';
+}
+
+/* ---------- Views: applied ---------- */
+function trackHtml(s){
+  var k = s.key;
+  var step2 = (k==='viewed'||k==='interview'||k==='rejected') ? 'done' : '';
+  var step3 = k==='interview' ? 'done' : k==='rejected' ? 'fail' : '';
+  return '<ol class="track" aria-label="Application progress"><li class="done">Sent</li><li class="'+step2+'">Viewed</li><li class="'+step3+'">'+(k==='rejected'?'Not successful':'Interview')+'</li></ol>';
+}
+function viewApplied(){
+  var apps = myApps(), now = Date.now();
+  var counts = {all:0, active:0, interview:0, rejected:0, withdrawn:0};
+  apps.forEach(function(a){ var k=statusOf(a,now).key; counts.all++; if(k==='sent'||k==='viewed') counts.active++; if(k==='interview') counts.interview++; if(k==='rejected') counts.rejected++; if(k==='withdrawn') counts.withdrawn++; });
+  var shown = apps.filter(function(a){ var k=statusOf(a,now).key; return ui.appFilter==='all' || (ui.appFilter==='active' ? (k==='sent'||k==='viewed') : k===ui.appFilter); });
+  var weekAgo = now - 7*DAY, week = apps.filter(function(a){ return a.at>weekAgo; }).length;
+  var chip = function(k,l){ return '<button class="chip" data-af="'+k+'" aria-pressed="'+(ui.appFilter===k)+'">'+l+' '+counts[k]+'</button>'; };
+  return '<div class="hello"><h1>Applied jobs</h1><p class="muted">Every job your CV was sent to, and what the employer did next.</p></div>'+
+    '<div class="status"><span class="dot"></span><div><strong>'+week+' '+(week===1?'application':'applications')+' this week.</strong><span>'+(counts.interview ? counts.interview+' '+(counts.interview===1?'employer wants':'employers want')+' to interview you.' : 'No interview invites yet. Statuses update on their own.')+'</span></div></div>'+
+    '<div class="chips" role="group" aria-label="Filter applications">'+chip('all','All')+chip('active','Waiting')+chip('interview','Interview')+chip('rejected','Not successful')+'</div>'+
+    (shown.length ? '<ul class="jobs">'+shown.map(function(a){
+      var job = jobById(a.jobId), s = statusOf(a, now);
+      return '<li class="job">'+
+        '<button class="job-open" data-job="'+esc(a.jobId)+'" '+(job?'':'disabled')+'>'+
+          '<span class="job-h"><span style="min-width:0;display:flex;flex-direction:column;gap:3px"><span class="jt">'+esc(job?job.title:a.jobTitle)+'</span><span class="who">'+esc(job?job.company:a.company)+(job?' · '+esc(job.city):'')+'</span></span><span class="state '+s.key+'">'+esc(s.label)+'</span></span>'+
+          (s.key==='withdrawn' ? '' : trackHtml(s))+
+        '</button>'+
+        '<div class="job-f"><span class="muted num">'+(a.method==='auto'?'Auto-applied ':'Applied ')+esc(ago(a.at))+'</span><span class="muted">'+(s.key==='interview'?'Employer replied':s.key==='viewed'?'CV opened by employer':s.key==='rejected'?'Position filled':s.key==='withdrawn'?'You withdrew':'Waiting for employer')+'</span></div>'+
+      '</li>';
+    }).join('')+'</ul>' : '<div class="empty card"><strong>'+(apps.length?'Nothing in this filter.':'No applications yet.')+'</strong>'+(apps.length?'':'<span>Apply from the Jobs tab, or switch on auto-apply.</span><button class="btn sm primary" data-go="jobs">Browse jobs</button>')+'</div>');
+}
+
+/* ---------- Views: profile ---------- */
+function viewProfile(){
+  var u = me(), p = u.prefs||{}, c = completeness(u);
+  return '<div class="who-card">'+
+      '<button type="button" class="avatar" id="avatarBtn" aria-label="Change profile photo">'+(u.photo?'<img src="'+u.photo+'" alt="">':'<span>'+esc(initials(u))+'</span>')+'<span class="cam" aria-hidden="true">'+ICON.cam+'</span></button>'+
+      '<h1>'+esc((u.name||'')+' '+(u.surname||''))+'</h1>'+
+      '<p class="role">'+esc(u.study||'Add what you studied')+(u.city?' · '+esc(u.city):'')+'</p>'+
+    '</div>'+
+    '<div class="card"><div class="section-h"><strong>Profile '+c+'% complete</strong><button class="btn sm" id="editProfile">Edit profile</button></div><div class="meter"><i style="width:'+c+'%"></i></div></div>'+
+    '<section class="section"><h2>CV</h2><div class="list">'+
+      (u.cv ? '<div class="cv"><span class="doc">'+esc((u.cv.name.split('.').pop()||'PDF').toUpperCase().slice(0,4))+'</span><div><strong>'+esc(u.cv.name)+'</strong><span class="num">'+Math.max(1,Math.round(u.cv.size/1024))+' KB · uploaded '+esc(ago(u.cv.at))+(u.cv.sample?' · sample':'')+'</span></div></div>'+
+        '<div class="cv-actions"><button class="btn sm" id="cvReplace">Replace</button>'+(u.cv.sample?'':'<button class="btn sm" id="cvView">View</button>')+'<button class="btn sm danger" id="cvRemove">Remove</button></div>'
+      : '<div class="cv"><span class="doc">CV</span><div><strong>No CV yet</strong><span>PDF or Word, up to 5 MB. It stays on this device.</span></div></div><div class="cv-actions"><button class="btn sm primary" id="cvReplace">Upload CV</button></div>')+
+    '</div></section>'+
+    '<section class="section"><h2>Auto-apply</h2><div class="list">'+
+      '<div class="setting"><div><strong>How to apply</strong><span>'+(u.auto.mode==='auto'?'Applies to matches by itself':'You review each match and tap to apply')+'</span></div>'+
+        '<div class="seg" role="group" aria-label="Apply mode"><button data-mode="auto" aria-pressed="'+(u.auto.mode==='auto')+'">Automatic</button><button data-mode="one" aria-pressed="'+(u.auto.mode==='one')+'">One-tap</button></div></div>'+
+      '<div class="setting"><div><strong>Minimum match</strong><span>Only jobs at or above this score count as matches</span></div></div>'+
+      '<div class="range-row"><input type="range" id="minMatch" min="50" max="95" step="5" value="'+u.auto.min+'" aria-label="Minimum match"><output id="minOut" class="num">'+u.auto.min+'%</output></div>'+
+      '<div class="setting"><div><strong>Pause applying</strong><span>Stops all auto-apply until you resume</span></div><button class="switch" id="pauseSw" role="switch" aria-checked="'+(!!u.auto.paused)+'" aria-label="Pause applying"></button></div>'+
+    '</div></section>'+
+    '<section class="section"><h2>Personal details</h2><dl class="list">'+
+      row('Name', u.name)+row('Surname', u.surname)+row('Email', u.email)+row('Phone', u.phone)+row('Location', [u.city,u.province].filter(Boolean).join(', '))+
+    '</dl></section>'+
+    '<section class="section"><h2>Education and skills</h2><dl class="list">'+
+      row('Qualification', u.qual)+row('Studied', u.study)+row('Institution', u.institution)+row('Graduated', u.gradYear)+
+      '<div class="row"><dt>Skills</dt><dd>'+((u.skills||[]).length?'<span class="skills">'+u.skills.map(function(s){ return '<span class="skill">'+esc(s)+'</span>'; }).join('')+'</span>':'<span class="muted">Not added</span>')+'</dd></div>'+
+      row('Experience', u.experience)+
+    '</dl></section>'+
+    '<section class="section"><h2>Job preferences</h2><dl class="list">'+
+      row('Fields', (p.fields||[]).join(', '))+row('Job types', (p.types||[]).join(', '))+
+      row('Provinces', (p.provinces||[]).join(', ') + (p.remote ? ((p.provinces||[]).length?' + ':'')+'remote' : ''))+
+      row('Minimum pay', p.minPay ? money(p.minPay)+' per month' : '')+
+    '</dl></section>'+
+    '<div class="actions"><button class="btn" id="logout">Log out</button><button class="btn ghost" data-go="admin">Admin</button></div>';
+}
+function row(k,v){ return '<div class="row"><dt>'+esc(k)+'</dt><dd>'+(v?esc(v):'<span class="muted">Not added</span>')+'</dd></div>'; }
+
+/* ---------- Views: admin ---------- */
+function viewPin(){
+  return '<div class="hello"><h1>Admin</h1><p class="muted">Enter the 4-digit PIN to manage jobs and see applications.</p></div>'+
+    '<form class="card form" id="pinForm" novalidate>'+
+      '<div class="pin">'+[0,1,2,3].map(function(i){ return '<input type="password" inputmode="numeric" maxlength="1" class="pinD" aria-label="PIN digit '+(i+1)+'" autocomplete="off">'; }).join('')+'</div>'+
+      '<p class="err" id="pinErr" hidden style="text-align:center">That PIN is not right. Try again.</p>'+
+      '<button class="btn primary wide" type="submit">Unlock</button>'+
+    '</form>'+
+    '<button class="btn ghost" data-go="'+(me()?'profile':'login')+'">Back</button>';
+}
+function viewAdmin(){
+  var now = Date.now(), users = Object.keys(mem.users).length;
+  var openJobs = mem.jobs.filter(function(j){ return !isClosed(j); }).length;
+  var apps = mem.apps.slice().sort(function(a,b){ return b.at-a.at; });
+  return '<div class="hello"><h1>Admin</h1><p class="muted">Manage the jobs on this device and see every application.</p></div>'+
+    '<div class="stats"><div class="stat"><b class="num">'+openJobs+'</b><span>Open jobs</span></div><div class="stat"><b class="num">'+apps.length+'</b><span>Applications</span></div><div class="stat"><b class="num">'+users+'</b><span>Accounts</span></div></div>'+
+    '<section class="section"><div class="section-h"><h2>Jobs</h2><button class="btn sm primary" id="addJob">Add job</button></div><div class="list">'+
+      mem.jobs.map(function(j){ return '<div class="adm-row"><div><strong>'+esc(j.title)+'</strong><span class="small muted">'+esc(j.company)+' · '+esc(j.city)+' · closes '+esc(fmtDate(j.closes))+(isClosed(j)?' · closed':'')+'</span></div><div class="btns"><button class="btn sm" data-edit="'+j.id+'">Edit</button><button class="btn sm danger" data-del="'+j.id+'">Delete</button></div></div>'; }).join('')+
+    '</div></section>'+
+    '<section class="section"><h2>Applications</h2><div class="list">'+
+      (apps.length ? apps.map(function(a){ var j=jobById(a.jobId), s=statusOf(a,now), u=mem.users[a.email];
+        return '<div class="adm-row"><div><strong>'+esc(u?(u.name+' '+u.surname):a.email)+'</strong><span class="small muted">'+esc(j?j.title:a.jobTitle)+' · '+(a.method==='auto'?'auto':'one-tap')+' · '+esc(ago(a.at))+'</span></div><span class="state '+s.key+'">'+esc(s.label)+'</span></div>'; }).join('')
+      : '<div class="adm-row"><span class="muted">No applications yet.</span></div>')+
+    '</div></section>'+
+    '<section class="section"><h2>Settings</h2><div class="card form">'+
+      '<form class="form" id="pinChange" novalidate><label class="field"><span>New admin PIN (4 digits)</span><input type="password" inputmode="numeric" maxlength="4" id="newPin" autocomplete="off"></label><p class="err" id="newPinErr" hidden></p><button class="btn sm" type="submit">Change PIN</button></form>'+
+      '<div id="resetBox"><button class="btn sm danger" id="resetAsk">Reset all test data</button></div>'+
+    '</div></section>'+
+    '<div class="actions"><button class="btn" id="lockAdmin">Lock admin</button><button class="btn ghost" data-go="'+(me()?'jobs':'login')+'">Back to app</button></div>';
+}
+
+/* ---------- Sheets ---------- */
+function openSheet(html){
+  var root = $('#sheetRoot');
+  root.innerHTML = '<div class="sheet-wrap" id="sheetWrap"><div class="sheet" role="dialog" aria-modal="true">'+html+'</div></div>';
+  var wrap = $('#sheetWrap');
+  wrap.addEventListener('click', function(e){ if(e.target===wrap) closeSheet(); });
+  $$('[data-close]', root).forEach(function(b){ b.addEventListener('click', closeSheet); });
+  document.body.style.overflow = 'hidden';
+  var f = root.querySelector('.x'); if(f) f.focus();
+}
+function closeSheet(){ $('#sheetRoot').innerHTML = ''; document.body.style.overflow = ''; }
+document.addEventListener('keydown', function(e){ if(e.key==='Escape' && $('#sheetWrap')) closeSheet(); });
+
+function openJob(id){
+  var u = me(), job = jobById(id); if(!job || !u) return;
+  var m = match(u, job), a = appFor(job.id), s = a ? statusOf(a) : null;
+  var action;
+  if(a) action = '<div class="actions"><span class="state '+s.key+'" style="align-self:center">'+esc(s.label)+'</span><button class="btn danger" id="wd" data-app="'+a.id+'">Withdraw application</button></div>';
+  else if(isClosed(job)) action = '<p class="muted">Applications for this job have closed.</p>';
+  else if(profileGaps(u).length) action = '<div class="status warn"><span class="dot"></span><div><strong>Finish your profile first.</strong><span>Still needed: '+esc(profileGaps(u).join(', '))+'.</span></div></div><button class="btn primary wide" data-go="profile">Go to profile</button>';
+  else if(!m.qualOk) action = '<p class="muted">This job needs at least a '+esc(job.qual.toLowerCase())+'. Update your qualification on your profile if you have one.</p>';
+  else action = '<button class="btn primary wide" id="sheetApply" data-job="'+job.id+'">Apply with my CV</button>';
+  openSheet(
+    '<div class="sheet-h"><div><h3>'+esc(job.title)+'</h3><span class="who">'+esc(job.company)+' · '+esc(job.type)+'</span></div><button class="x" data-close aria-label="Close">'+ICON.x+'</button></div>'+
+    '<div class="card"><div class="job-h"><span class="pay num">'+money(job.pay)+' <small>per month</small></span><span class="match '+(m.score>=80?'hi':m.score<50?'lo':'')+' num">'+m.score+'% match</span></div>'+
+      '<div class="facts"><span class="fact">'+ICON.pin+'<span>'+esc(job.city)+', '+esc(job.province)+'</span></span><span class="fact">'+ICON.home+'<span>'+esc(job.mode)+'</span></span><span class="fact">'+ICON.cap+'<span>'+esc(job.qual)+' or higher</span></span><span class="fact">'+ICON.type+'<span>Closes '+esc(fmtDate(job.closes))+'</span></span></div></div>'+
+    '<section class="section"><h2>Why this match</h2><ul class="why card">'+m.reasons.map(function(r){ return '<li class="'+(r.ok?'ok':'no')+'"><b aria-hidden="true">'+(r.ok?'✓':'–')+'</b><span>'+esc(r.text)+'</span></li>'; }).join('')+'</ul></section>'+
+    '<section class="section"><h2>About the job</h2><p class="prose">'+esc(job.desc)+'</p></section>'+
+    '<section class="section"><h2>Skills</h2><div class="skills">'+job.skills.map(function(sk){ return '<span class="skill'+(m.have.indexOf(sk)>-1?'':' miss')+'">'+esc(sk)+'</span>'; }).join('')+'</div></section>'+
+    action
+  );
+  var ap = $('#sheetApply'); if(ap) ap.addEventListener('click', function(){ if(apply(job.id,'one-tap')){ toast('Applied to '+job.title+'.'); } closeSheet(); render(); });
+  var wd = $('#wd');
+  if(wd) wd.addEventListener('click', function(){
+    wd.outerHTML = '<div class="confirm" style="flex:1"><span>Withdraw this application? The employer will no longer see it.</span><div class="actions"><button class="btn danger" id="wdYes">Withdraw</button><button class="btn" id="wdNo">Keep it</button></div></div>';
+    $('#wdYes').addEventListener('click', function(){ withdraw(a.id); toast('Application withdrawn.'); closeSheet(); render(); });
+    $('#wdNo').addEventListener('click', function(){ openJob(id); });
+  });
+  $$('#sheetRoot [data-go]').forEach(function(b){ b.addEventListener('click', function(){ go(b.dataset.go); }); });
+}
+
+function checks(name, all, chosen){ return '<div class="checks">'+all.map(function(x,i){ return '<label class="check"><input type="checkbox" name="'+name+'" value="'+esc(x)+'"'+((chosen||[]).indexOf(x)>-1?' checked':'')+'><span>'+esc(x)+'</span></label>'; }).join('')+'</div>'; }
+function select(id, all, val, first){ return '<select id="'+id+'">'+(first?'<option value="">'+first+'</option>':'')+all.map(function(x){ return '<option'+(x===val?' selected':'')+'>'+esc(x)+'</option>'; }).join('')+'</select>'; }
+function openProfileEdit(){
+  var u = me(), p = u.prefs||{};
+  openSheet(
+    '<div class="sheet-h"><div><h3>Edit profile</h3><span class="who">Employers see this with your CV.</span></div><button class="x" data-close aria-label="Close">'+ICON.x+'</button></div>'+
+    '<form class="form" id="pForm" novalidate>'+
+      '<h2>Personal details</h2>'+
+      '<div class="grid2"><label class="field"><span>Name</span><input type="text" id="pName" value="'+esc(u.name)+'"></label><label class="field"><span>Surname</span><input type="text" id="pSurname" value="'+esc(u.surname)+'"></label></div>'+
+      '<label class="field"><span>Phone</span><input type="text" id="pPhone" inputmode="tel" value="'+esc(u.phone)+'"></label>'+
+      '<div class="grid2"><label class="field"><span>Town or city</span><input type="text" id="pCity" value="'+esc(u.city)+'"></label><label class="field"><span>Province</span>'+select('pProv', PROVINCES, u.province, 'Choose')+'</label></div>'+
+      '<h2>Education and skills</h2>'+
+      '<div class="grid2"><label class="field"><span>Highest qualification</span>'+select('pQual', QUALS, u.qual, 'Choose')+'</label><label class="field"><span>Year completed</span><input type="text" id="pYear" inputmode="numeric" maxlength="4" value="'+esc(u.gradYear)+'"></label></div>'+
+      '<label class="field"><span>What you studied</span><input type="text" id="pStudy" value="'+esc(u.study)+'" placeholder="e.g. BCom Accounting"></label>'+
+      '<label class="field"><span>Institution</span><input type="text" id="pInst" value="'+esc(u.institution)+'"></label>'+
+      '<label class="field"><span>Skills, separated by commas</span><input type="text" id="pSkills" value="'+esc((u.skills||[]).join(', '))+'" placeholder="Excel, Power BI, Communication"></label>'+
+      '<label class="field"><span>Experience</span><textarea id="pExp" placeholder="Internships, part-time work, volunteering">'+esc(u.experience)+'</textarea></label>'+
+      '<h2>Job preferences</h2>'+
+      '<div class="field"><span>Fields you want</span>'+checks('pf', FIELDS, p.fields)+'</div>'+
+      '<div class="field"><span>Job types</span>'+checks('pt', TYPES, p.types)+'</div>'+
+      '<div class="field"><span>Provinces</span>'+checks('pp', PROVINCES, p.provinces)+'</div>'+
+      '<label class="check"><input type="checkbox" id="pRemote"'+(p.remote?' checked':'')+'><span>Open to remote work</span></label>'+
+      '<label class="field"><span>Minimum pay per month (rand)</span><input type="number" id="pPay" min="0" step="500" value="'+esc(p.minPay||'')+'"></label>'+
+      '<p class="err" id="pErr" hidden></p>'+
+      '<div class="actions"><button class="btn" type="button" data-close>Cancel</button><button class="btn primary" type="submit">Save profile</button></div>'+
+    '</form>'
+  );
+  $('#pForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var name = $('#pName').value.trim(), surname = $('#pSurname').value.trim();
+    var year = $('#pYear').value.trim();
+    var err = $('#pErr');
+    if(!name || !surname){ err.textContent='Add your name and surname.'; err.hidden=false; return; }
+    if(year && !/^\d{4}$/.test(year)){ err.textContent='Year completed should be four digits, like 2025.'; err.hidden=false; return; }
+    var vals = function(n){ return $$('input[name="'+n+'"]:checked').map(function(i){ return i.value; }); };
+    u.name=name; u.surname=surname; u.phone=$('#pPhone').value.trim(); u.city=$('#pCity').value.trim(); u.province=$('#pProv').value;
+    u.qual=$('#pQual').value; u.gradYear=year; u.study=$('#pStudy').value.trim(); u.institution=$('#pInst').value.trim();
+    u.skills=$('#pSkills').value.split(',').map(function(s){ return s.trim(); }).filter(Boolean);
+    u.experience=$('#pExp').value.trim();
+    u.prefs={fields:vals('pf'), types:vals('pt'), provinces:vals('pp'), remote:$('#pRemote').checked, minPay:Math.max(0, parseInt($('#pPay').value,10)||0)};
+    save(); closeSheet(); toast('Profile saved.'); runAuto(); render();
+  });
+}
+
+function openJobEdit(id){
+  var j = id ? jobById(id) : {title:'',company:'',type:TYPES[0],field:FIELDS[0],city:'',province:'Gauteng',mode:'On-site',qual:'Degree',pay:'',closes:'',skills:[],desc:''};
+  openSheet(
+    '<div class="sheet-h"><div><h3>'+(id?'Edit job':'Add job')+'</h3><span class="who">Saved on this device.</span></div><button class="x" data-close aria-label="Close">'+ICON.x+'</button></div>'+
+    '<form class="form" id="jForm" novalidate>'+
+      '<label class="field"><span>Job title</span><input type="text" id="jTitle" value="'+esc(j.title)+'"></label>'+
+      '<label class="field"><span>Company</span><input type="text" id="jCompany" value="'+esc(j.company)+'"></label>'+
+      '<div class="grid2"><label class="field"><span>Type</span>'+select('jType', TYPES, j.type)+'</label><label class="field"><span>Field</span>'+select('jField', FIELDS, j.field)+'</label></div>'+
+      '<div class="grid2"><label class="field"><span>Town or city</span><input type="text" id="jCity" value="'+esc(j.city)+'"></label><label class="field"><span>Province</span>'+select('jProv', PROVINCES, j.province)+'</label></div>'+
+      '<div class="grid2"><label class="field"><span>Work mode</span>'+select('jMode', MODES, j.mode)+'</label><label class="field"><span>Minimum qualification</span>'+select('jQual', QUALS, j.qual)+'</label></div>'+
+      '<div class="grid2"><label class="field"><span>Pay per month (rand)</span><input type="number" id="jPay" min="0" step="500" value="'+esc(j.pay)+'"></label><label class="field"><span>Closing date</span><input type="date" id="jCloses" value="'+esc(j.closes)+'"></label></div>'+
+      '<label class="field"><span>Skills, separated by commas</span><input type="text" id="jSkills" value="'+esc(j.skills.join(', '))+'"></label>'+
+      '<label class="field"><span>Description</span><textarea id="jDesc">'+esc(j.desc)+'</textarea></label>'+
+      '<p class="err" id="jErr" hidden></p>'+
+      '<div class="actions"><button class="btn" type="button" data-close>Cancel</button><button class="btn primary" type="submit">'+(id?'Save job':'Add job')+'</button></div>'+
+    '</form>'
+  );
+  $('#jForm').addEventListener('submit', function(e){
+    e.preventDefault();
+    var title=$('#jTitle').value.trim(), company=$('#jCompany').value.trim(), city=$('#jCity').value.trim(), pay=parseInt($('#jPay').value,10), closes=$('#jCloses').value;
+    var err=$('#jErr');
+    if(!title||!company||!city){ err.textContent='Add a title, company and town or city.'; err.hidden=false; return; }
+    if(!(pay>=0)){ err.textContent='Add the monthly pay as a number, like 9000.'; err.hidden=false; return; }
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(closes)){ err.textContent='Choose a closing date.'; err.hidden=false; return; }
+    var data = {title:title, company:company, type:$('#jType').value, field:$('#jField').value, city:city, province:$('#jProv').value, mode:$('#jMode').value, qual:$('#jQual').value, pay:pay, closes:closes,
+      skills:$('#jSkills').value.split(',').map(function(s){return s.trim();}).filter(Boolean), desc:$('#jDesc').value.trim()||'No description yet.'};
+    if(id){ Object.assign(jobById(id), data); toast('Job saved.'); }
+    else { data.id='c'+uid(); data.posted=new Date().toISOString().slice(0,10); mem.jobs.unshift(data); toast('Job added.'); }
+    save(); closeSheet(); render();
+  });
+}
+
+/* ---------- Binding ---------- */
+function bindView(){
+  var v = $('#view');
+  $$('[data-go]', v).forEach(function(b){ b.addEventListener('click', function(){ go(b.dataset.go); }); });
+  $$('[data-job]', v).forEach(function(b){ b.addEventListener('click', function(){ openJob(b.dataset.job); }); });
+  $$('[data-apply]', v).forEach(function(b){ b.addEventListener('click', function(){ var j=jobById(b.dataset.apply); if(apply(b.dataset.apply,'one-tap')) toast('Applied to '+j.title+'.'); render(); }); });
+
+  var lf = $('#loginForm');
+  if(lf){
+    $('#fillTest').addEventListener('click', function(){ $('#liEmail').value=TEST_EMAIL; $('#liPass').value=TEST_PASS; });
+    lf.addEventListener('submit', function(e){
+      e.preventDefault();
+      var email=$('#liEmail').value.trim().toLowerCase(), pass=$('#liPass').value, u=mem.users[email], err=$('#liErr');
+      if(!email||!pass){ err.textContent='Enter your email and password.'; err.hidden=false; return; }
+      if(!u || u.pass!==hashPass(pass)){ err.textContent='That email and password do not match an account on this device.'; err.hidden=false; return; }
+      mem.session=email; save(); route='jobs'; render(); runAuto(); render();
+    });
+  }
+  var sf = $('#signupForm');
+  if(sf) sf.addEventListener('submit', function(e){
+    e.preventDefault();
+    var name=$('#suName').value.trim(), surname=$('#suSurname').value.trim(), email=$('#suEmail').value.trim().toLowerCase(), pass=$('#suPass').value, err=$('#suErr');
+    if(!name||!surname){ err.textContent='Add your name and surname.'; err.hidden=false; return; }
+    if(!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)){ err.textContent='Enter a valid email address.'; err.hidden=false; return; }
+    if(pass.length<6){ err.textContent='Use a password of at least 6 characters.'; err.hidden=false; return; }
+    if(mem.users[email]){ err.textContent='An account with that email already exists on this device. Log in instead.'; err.hidden=false; return; }
+    mem.users[email]={email:email, pass:hashPass(pass), created:Date.now(), name:name, surname:surname, phone:'', city:'', province:'', qual:'', study:'', institution:'', gradYear:'', skills:[], experience:'',
+      prefs:{fields:[],types:[],provinces:[],remote:false,minPay:0}, cv:null, auto:{mode:'one',min:75,paused:false}, lastSeen:Date.now(), photo:null};
+    mem.session=email; save(); toast('Account created. Add your CV and preferences to start applying.'); go('profile');
   });
 
-  // Auto-apply switch (demo only)
-  var sw = document.getElementById('autoSwitch');
-  sw.addEventListener('click', function(){
-    sw.setAttribute('aria-checked', sw.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
+  var q = $('#q');
+  if(q){
+    q.addEventListener('input', function(){ ui.q=q.value; var pos=q.selectionStart; render(); var n=$('#q'); n.focus(); try{ n.setSelectionRange(pos,pos); }catch(e){} });
+    $('#fSort').addEventListener('change', function(e){ ui.sort=e.target.value; render(); });
+    $('#fType').addEventListener('change', function(e){ ui.type=e.target.value; render(); });
+    $('#fField').addEventListener('change', function(e){ ui.field=e.target.value; render(); });
+    $('#fProv').addEventListener('change', function(e){ ui.province=e.target.value; render(); });
+  }
+  [$('#clearF'),$('#clearF2')].forEach(function(b){ if(b) b.addEventListener('click', function(){ ui.q=ui.type=ui.field=ui.province=''; render(); }); });
+  var ra = $('#resumeAuto'); if(ra) ra.addEventListener('click', function(){ me().auto.paused=false; save(); runAuto(); render(); });
+  var aa = $('#applyAll');
+  if(aa) aa.addEventListener('click', function(){
+    var u=me(), n=0;
+    mem.jobs.forEach(function(j){ if(!isClosed(j) && !appFor(j.id)){ var m=match(u,j); if(m.qualOk && m.locOk && m.score>=u.auto.min && apply(j.id,'one-tap')) n++; } });
+    toast('Applied to '+n+' '+(n===1?'job':'jobs')+'.'); render();
   });
+  $$('[data-af]', v).forEach(function(b){ b.addEventListener('click', function(){ ui.appFilter=b.dataset.af; render(); }); });
+
+  // Profile
+  var eb = $('#editProfile'); if(eb) eb.addEventListener('click', openProfileEdit);
+  var av = $('#avatarBtn'); if(av) av.addEventListener('click', function(){ $('#photoInput').click(); });
+  var cr = $('#cvReplace'); if(cr) cr.addEventListener('click', function(){ $('#cvInput').click(); });
+  var cvv = $('#cvView');
+  if(cvv) cvv.addEventListener('click', function(){
+    getCv(me().email).then(function(f){
+      if(!f){ toast('The CV file is not on this device any more. Upload it again.'); return; }
+      var url = URL.createObjectURL(f); var a=document.createElement('a'); a.href=url; a.target='_blank'; a.rel='noopener'; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 60000);
+    });
+  });
+  var crm = $('#cvRemove');
+  if(crm) crm.addEventListener('click', function(){
+    var box = crm.parentNode;
+    box.innerHTML = '<div class="confirm" style="flex:1"><span>Remove your CV? Auto-apply stops until you upload one again.</span><div class="actions"><button class="btn danger" id="cvYes">Remove</button><button class="btn" id="cvNo">Keep it</button></div></div>';
+    $('#cvYes').addEventListener('click', function(){ var u=me(); delCv(u.email); u.cv=null; save(); toast('CV removed.'); render(); });
+    $('#cvNo').addEventListener('click', render);
+  });
+  $$('[data-mode]', v).forEach(function(b){ b.addEventListener('click', function(){ var u=me(); u.auto.mode=b.dataset.mode; save(); toast(u.auto.mode==='auto'?'Automatic apply is on.':'One-tap apply is on.'); runAuto(true); render(); }); });
+  var mm = $('#minMatch');
+  if(mm){
+    mm.addEventListener('input', function(){ $('#minOut').textContent = mm.value+'%'; });
+    mm.addEventListener('change', function(){ me().auto.min=parseInt(mm.value,10); save(); runAuto(); render(); });
+  }
+  var ps = $('#pauseSw'); if(ps) ps.addEventListener('click', function(){ var u=me(); u.auto.paused=!u.auto.paused; save(); toast(u.auto.paused?'Applying paused.':'Applying resumed.'); runAuto(); render(); });
+  var lo = $('#logout'); if(lo) lo.addEventListener('click', function(){ mem.session=null; save(); go('login'); });
+
+  // Admin
+  var pf = $('#pinForm');
+  if(pf){
+    var digits = $$('.pinD');
+    digits.forEach(function(d,i){
+      d.addEventListener('input', function(){ d.value=d.value.replace(/\D/g,'').slice(-1); if(d.value && digits[i+1]) digits[i+1].focus(); if(digits.every(function(x){return x.value;})) pf.requestSubmit ? pf.requestSubmit() : pf.dispatchEvent(new Event('submit')); });
+      d.addEventListener('keydown', function(e){ if(e.key==='Backspace' && !d.value && digits[i-1]) digits[i-1].focus(); });
+    });
+    digits[0].focus();
+    pf.addEventListener('submit', function(e){
+      e.preventDefault();
+      var pin = digits.map(function(d){ return d.value; }).join('');
+      if(pin===mem.pin){ adminOpen=true; render(); }
+      else { $('#pinErr').hidden=false; digits.forEach(function(d){ d.value=''; }); digits[0].focus(); }
+    });
+  }
+  var aj = $('#addJob'); if(aj) aj.addEventListener('click', function(){ openJobEdit(null); });
+  $$('[data-edit]', v).forEach(function(b){ b.addEventListener('click', function(){ openJobEdit(b.dataset.edit); }); });
+  $$('[data-del]', v).forEach(function(b){
+    b.addEventListener('click', function(){
+      var id=b.dataset.del, j=jobById(id), rowEl=b.closest('.adm-row');
+      rowEl.innerHTML = '<div class="confirm" style="flex:1"><span>Delete "'+esc(j.title)+'"? Applications to it stay in the list.</span><div class="actions"><button class="btn danger" data-yes>Delete</button><button class="btn" data-no>Cancel</button></div></div>';
+      rowEl.querySelector('[data-yes]').addEventListener('click', function(){ mem.jobs=mem.jobs.filter(function(x){ return x.id!==id; }); save(); toast('Job deleted.'); render(); });
+      rowEl.querySelector('[data-no]').addEventListener('click', render);
+    });
+  });
+  var pc = $('#pinChange');
+  if(pc) pc.addEventListener('submit', function(e){
+    e.preventDefault(); var np=$('#newPin').value.trim(), err=$('#newPinErr');
+    if(!/^\d{4}$/.test(np)){ err.textContent='The PIN must be exactly 4 digits.'; err.hidden=false; return; }
+    mem.pin=np; save(); toast('Admin PIN changed.'); render();
+  });
+  var rs = $('#resetAsk');
+  if(rs) rs.addEventListener('click', function(){
+    $('#resetBox').innerHTML = '<div class="confirm"><span>Reset everything on this device? All accounts except the test account, all applications and all job changes are deleted.</span><div class="actions"><button class="btn danger" id="resetYes">Reset</button><button class="btn" id="resetNo">Cancel</button></div></div>';
+    $('#resetYes').addEventListener('click', function(){ Object.keys(mem.users).forEach(function(e){ delCv(e); }); mem=seedState(); save(); adminOpen=false; toast('Test data reset.'); go('login'); });
+    $('#resetNo').addEventListener('click', render);
+  });
+  var la = $('#lockAdmin'); if(la) la.addEventListener('click', function(){ adminOpen=false; go(me()?'profile':'login'); });
+}
+
+$$('.tab').forEach(function(t){ t.addEventListener('click', function(){ go(t.dataset.go); }); });
+
+$('#photoInput').addEventListener('change', function(){
+  var input=this, file=input.files&&input.files[0]; if(!file||!me()) return;
+  var reader=new FileReader();
+  reader.onload=function(){
+    var raw=new Image();
+    raw.onload=function(){
+      var size=240, c=document.createElement('canvas'); c.width=size; c.height=size;
+      var s=Math.min(raw.width,raw.height); c.getContext('2d').drawImage(raw,(raw.width-s)/2,(raw.height-s)/2,s,s,0,0,size,size);
+      me().photo=c.toDataURL('image/jpeg',0.82); save(); render();
+    };
+    raw.onerror=function(){ toast('That photo could not be opened. Try a JPG or PNG.'); };
+    raw.src=reader.result;
+  };
+  reader.readAsDataURL(file); input.value='';
+});
+$('#cvInput').addEventListener('change', function(){
+  var input=this, file=input.files&&input.files[0], u=me(); if(!file||!u) return;
+  input.value='';
+  if(!/\.(pdf|docx?)$/i.test(file.name)){ toast('Upload a PDF or Word document.'); return; }
+  if(file.size > 5*1024*1024){ toast('That file is over 5 MB. Upload a smaller CV.'); return; }
+  putCv(u.email, file).then(function(){
+    u.cv={name:file.name, size:file.size, at:Date.now(), sample:false}; save();
+    toast('CV uploaded.'); runAuto(); render();
+  });
+});
+
+/* ---------- Start ---------- */
+init();
+var h = (location.hash||'').replace('#','');
+if(['jobs','applied','profile','admin','login','signup'].indexOf(h)>-1) route = h;
+render();
+if(me()) runAuto(), render();
+// Employers "reply" over time: refresh badges and the open page every 15 seconds
+setInterval(function(){
+  if($('#sheetWrap')) { var b=unseen(); $('#badge').hidden=!b||route==='applied'; $('#badge').textContent=b; return; }
+  var active = document.activeElement;
+  if(active && /INPUT|SELECT|TEXTAREA/.test(active.tagName)) return;
+  if(me()) runAuto();
+  render();
+}, 15000);
 })();
 </script>
 
