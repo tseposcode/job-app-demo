@@ -3,6 +3,7 @@ import js from '@eslint/js';
 import globals from 'globals';
 
 export default [
+  { ignores: ['js/vendor/**'] }, // third-party code (pdf.js), not ours to lint
   js.configs.recommended,
   {
     files: ['js/**/*.js'],

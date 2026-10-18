@@ -5,5 +5,7 @@ playwright-report/
 Thumbs.db
 *.log
 # Never commit real people's CVs or personal data (POPIA)
-cvs/
+/cvs/
 *.pdf
+# ...except the three made-up demo CVs
+!samples/cvs/*.pdf
