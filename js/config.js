@@ -43,10 +43,13 @@ export const DAY = 24 * 60 * MIN;
 // How often the screen refreshes so employer "replies" appear.
 export const TICK_MS = 15 * 1000;
 
-// Subscription plans. PLACEHOLDER prices for the demo: confirm with the business before launch.
+// Subscription plans, shown as tiles in this order. The first one is the monthly
+// price that savings are worked out against. "Best value" goes to the plan with
+// the lowest price per month (see services/subscription.js).
 export const PLANS = [
-  { id: 'monthly', name: 'Monthly', price: 79, months: 1, note: 'Cancel any time' },
-  { id: 'quarter', name: '3 months', price: 199, months: 3, note: 'Save R38', best: true },
+  { id: 'monthly', name: 'Monthly', price: 60, months: 1 },
+  { id: 'quarter', name: '3 months', price: 150, months: 3 },
+  { id: 'yearly', name: 'Yearly', price: 699, months: 12 },
 ];
 
 // Privacy notice version. Change it when the notice changes and everyone is asked to agree again.

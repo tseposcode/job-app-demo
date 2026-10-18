@@ -4,7 +4,7 @@
 // download my data, withdraw consent and delete the account (POPIA rights).
 
 import { $, esc, fmtDay, money } from '../lib/utils.js';
-import { cancelSubscription, planById, resumeSubscription } from '../services/subscription.js';
+import { cancelSubscription, perText, planById, resumeSubscription } from '../services/subscription.js';
 import { deleteAccount, exportMyData, setMarketing } from '../services/account.js';
 import { confirmInline } from '../ui/forms.js';
 import { openPrivacyNotice } from './sheets/privacy-notice.js';
@@ -15,7 +15,7 @@ function planSection(u) {
   const sub = u.subscription;
   if (!sub) return '';
   const plan = planById(sub.plan);
-  const per = plan && plan.months > 1 ? `every ${plan.months} months` : 'per month';
+  const per = plan ? perText(plan) : 'per month';
   const active = sub.status === 'active';
   return `<section class="section"><h2>Plan</h2><dl class="list">
     ${row('Plan', `${plan ? plan.name : sub.plan} · ${money(sub.price)} ${per}`)}

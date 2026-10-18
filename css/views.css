@@ -71,12 +71,18 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
 .pick .doc{width:34px;height:42px;border-radius:6px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;flex:none}
 .pick-t{min-width:0;display:flex;flex-direction:column;gap:2px}
 .pick-t span{font-size:.8rem;color:var(--muted)}
-.plans{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.plan{font:inherit;color:var(--ink);text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:14px;
-  display:flex;flex-direction:column;gap:4px;cursor:pointer;position:relative;min-width:0}
+.plans{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.plan{font:inherit;color:var(--ink);text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:10px 10px 12px;
+  display:flex;flex-direction:column;gap:2px;cursor:pointer;min-width:0}
 .plan[aria-checked="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.plan .price{font-family:var(--f-display);font-weight:800;font-size:1.5rem;letter-spacing:-.02em}
-.plan .best{position:absolute;top:-9px;right:12px;font-size:.68rem;font-weight:700;background:var(--accent);color:var(--accent-ink);padding:2px 8px;border-radius:999px}
+.plan-top{display:flex;align-items:center;justify-content:space-between;gap:4px;min-height:20px;margin-bottom:4px}
+.plan .best{font-size:.62rem;font-weight:700;background:var(--accent);color:var(--accent-ink);padding:2px 6px;border-radius:999px;white-space:nowrap}
+.plan .radio{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--line);margin-left:auto;flex:none}
+.plan[aria-checked="true"] .radio{border:5px solid var(--accent)}
+.plan strong{font-size:.86rem;font-weight:700}
+.plan .price{font-family:var(--f-display);font-weight:800;font-size:1.35rem;letter-spacing:-.02em;line-height:1.15}
+.plan .per,.plan .plan-sub{font-size:.72rem;color:var(--muted)}
+.plan .save{font-size:.72rem;font-weight:700;color:var(--accent);margin-top:2px}
 .center{text-align:center}
 .notice{display:flex;flex-direction:column;gap:14px}
 .notice h4{margin:0 0 4px;font-size:.95rem;font-weight:700}

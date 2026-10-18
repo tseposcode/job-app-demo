@@ -10,6 +10,23 @@ import { currentUser } from './auth.js';
 
 export const planById = (id) => PLANS.find((p) => p.id === id) || null;
 
+// "per month", "every 3 months", "per year"
+export const perText = (plan) =>
+  plan.months === 1 ? 'per month' : plan.months === 12 ? 'per year' : `every ${plan.months} months`;
+
+// What one month costs on this plan, and how much it saves against paying monthly.
+export function planValue(plan) {
+  const monthly = PLANS.find((p) => p.months === 1) || plan;
+  return {
+    perMonth: plan.price / plan.months,
+    saving: Math.max(0, Math.round(monthly.price * plan.months - plan.price)),
+  };
+}
+
+// The plan with the lowest price per month gets the "Best value" badge.
+export const bestPlanId = () =>
+  PLANS.reduce((best, p) => (planValue(p).perMonth < planValue(best).perMonth ? p : best), PLANS[0]).id;
+
 const addMonths = (t, months) => {
   const d = new Date(t);
   d.setMonth(d.getMonth() + months);

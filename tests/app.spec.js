@@ -142,6 +142,8 @@ test('full sign-up with a sample CV: consent, CV read, plan, auto-apply', async 
   // Paywall: matches are shown but nothing is sent until there is a plan.
   await expect(page.locator('h1')).toHaveText('Choose your plan');
   await expect(page.locator('#view')).toContainText('jobs match you right now');
+  await expect(page.locator('.plan')).toHaveCount(3);
+  await expect(page.locator('.plan .best')).toHaveCount(1);
   await page.goto('/index.html#jobs');
   await expect(page.locator('h1')).toHaveText('Choose your plan');
   await page.click('[data-plan=monthly]');
