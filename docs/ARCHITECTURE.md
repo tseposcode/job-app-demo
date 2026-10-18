@@ -15,7 +15,8 @@ Code only calls **downwards** in this list. A page may use a service; a service 
 | Shared UI | `js/ui/*.js` | Toast, sheet, form helpers used by many pages | Yes |
 | Services | `js/services/*.js` | The rules: log in, match jobs, apply, auto-apply | **No** |
 | Core | `js/core/store.js`, `js/core/files.js` | Saving data and CV files in the browser | No |
-| Data | `js/data/*.js` | Sample jobs and the test account | No |
+| Data | `js/data/*.js` | Sample jobs, the test account, the privacy notice text | No |
+| Third-party | `js/vendor/pdfjs/` | pdf.js, for reading PDF CVs. Don't edit; replace the whole folder to update | No |
 | Helpers | `js/lib/*.js`, `js/config.js` | Formatting, icons, fixed lists and settings | No |
 | Styles | `css/*.css` | Colours (`tokens.css`), basics, shared pieces, page-only styles | — |
 
@@ -32,7 +33,16 @@ Code only calls **downwards** in this list. A page may use a service; a service 
 | Statuses (Sent / Viewed / Interview) behave oddly | `js/services/applications.js` → `makeApplication()`, `statusOf()` |
 | Search, filters or sorting on the Jobs page | `js/views/jobs.js` |
 | Applied page list or filter chips | `js/views/applied.js` |
-| CV upload or photo upload | `js/views/profile.js` → `setupProfileUploads()`, and `js/core/files.js` |
+| CV upload or photo upload on Profile | `js/views/profile.js` → `setupProfileUploads()`, `js/services/cv.js`, `js/core/files.js` |
+| CV details read wrongly (name, skills, education...) | `js/services/cv-reader.js` → `parseCv()` |
+| A PDF CV can't be read at all | `js/lib/pdf-text.js`, then `js/services/cv.js` → `readCv()` |
+| Sign-up steps: CV, details, preferences | `js/views/setup.js` |
+| Privacy step, consent boxes | `js/views/consent.js` (page), `js/services/account.js` (recording consent) |
+| Privacy notice wording | `js/data/privacy-notice.js` (then bump `PRIVACY_VERSION` in `js/config.js`) |
+| Plan page or checkout | `js/views/subscribe.js` (page), `js/services/subscription.js` (rules) |
+| Plan prices | `js/config.js` → `PLANS` |
+| Someone is sent to the wrong sign-up step | `js/services/access.js` → `pendingStep()`, used by `js/core/router.js` |
+| Plan and Privacy sections on Profile; download my data; delete account | `js/views/profile-account.js`, `js/services/account.js` |
 | Job details sheet, Apply or Withdraw button | `js/views/sheets/job-detail.js` |
 | Edit profile form | `js/views/sheets/profile-edit.js` |
 | Admin PIN, add/edit/delete jobs, reset | `js/views/admin.js`, `js/views/sheets/job-edit.js` |
@@ -40,6 +50,16 @@ Code only calls **downwards** in this list. A page may use a service; a service 
 | Lists of fields, provinces, job types; test login; PIN | `js/config.js` |
 | Which page shows, or a new page | `js/core/router.js` |
 | Data not saving | `js/core/store.js` |
+
+## The sign-up guard
+
+A logged-in person can only see the step they still have to finish, in this order (`js/services/access.js`):
+
+1. **Consent** to the current privacy notice (`consent` page)
+2. **Setup** finished: CV, details, preferences (`setup` page)
+3. An **active plan** (`subscribe` page)
+
+The router asks `pendingStep()` on every redraw, so typing `#jobs` in the address can't skip a step. Applying, by hand or automatically, checks the same rules (`canApply()`). Admin is the only page outside the guard.
 
 ## How a page works
 
@@ -72,3 +92,5 @@ There is one copy of the data (`js/core/store.js`). Nothing else keeps its own c
 - Data stays on one device. Two phones never see each other's accounts or jobs.
 - Passwords are hashed in the browser only for the demo. A live version must use a server.
 - No real applications are sent. Employer replies are simulated on a timer.
+- Payments are a test checkout. A live version sends people to a payment provider's page and learns they paid from the provider's server, never from the browser.
+- The privacy notice is a draft. A lawyer must check it, and the Information Officer details must be added, before real people use the app.

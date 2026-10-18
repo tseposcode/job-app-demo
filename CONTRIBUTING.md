@@ -51,7 +51,8 @@ We use the Conventional Commits style: `type: what changed`, in the present tens
 
 - **Never commit a real person's CV, ID number, phone number or email**, not even for testing. Use the made-up test data.
 - No passwords, API keys or tokens in the code. When a server is added, secrets go in environment variables that are never committed.
-- `.gitignore` blocks `*.pdf` and a `cvs/` folder to help prevent accidents.
+- `.gitignore` blocks `*.pdf` and a `cvs/` folder to help prevent accidents. The only PDFs allowed are the made-up CVs in `samples/cvs/` (their phone numbers use `000` and emails use `example.com`). Make new ones with `samples/make_sample_cvs.py`, never from a real CV.
+- **Consent is recorded, not assumed.** Anything new that uses personal information in a new way needs the privacy notice (`js/data/privacy-notice.js`) updated and `PRIVACY_VERSION` bumped, so everyone is asked again.
 
 ## Checklist for the code auditor
 
