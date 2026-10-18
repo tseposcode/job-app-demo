@@ -14,6 +14,7 @@ Tsepo builds; the code auditor reviews every change before it reaches `main`.
 4. **Check it before you share it.**
    - Run the app (see README) and click through what you changed.
    - `npm run check` runs the linter, the formatter check and the automatic tests.
+   - Changed any CSS or JS that goes live? Bump the `?v=` number in `index.html` so phones load the new files.
 5. **Commit in small steps** with a clear message (see below).
 6. **Push and open a pull request (PR)** on GitHub into `main`. Fill in the template.
 7. **The auditor reviews.** Fix what they ask on the same branch and push again.

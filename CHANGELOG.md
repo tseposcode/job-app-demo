@@ -2,6 +2,11 @@
 
 Notable changes a user or tester would notice. Newest first.
 
+## 0.3.1 (2026-10-18)
+
+- Plan page: three tiles (Monthly R60, 3 months R150, Yearly R699) with price per month, savings and a "Best value" badge.
+- Phones now load fresh styles after an update instead of mixing old and new files.
+
 ## 0.3.0 (2026-10-18)
 
 - New six-step sign-up: account, privacy, CV, details, preferences, plan.
