@@ -1,0 +1,28 @@
+/* base.css
+   Page basics: box sizing, body, headings, the narrow app column, header.
+*/
+*{box-sizing:border-box}
+html,body{background:var(--bg);color:var(--ink)}
+body{font-family:var(--f-body);font-size:15px;line-height:1.45;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
+  padding-block:18px calc(96px + env(safe-area-inset-bottom,0px))}
+body.no-tabs{padding-block:18px 32px}
+h1,h2,h3,p,dl,dd,ul,ol{margin:0}
+ul,ol{padding:0;list-style:none}
+h1{font-family:var(--f-display);font-weight:800;font-size:1.75rem;letter-spacing:-.02em;line-height:1.1;text-wrap:balance}
+h2{font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+h3,.jt{font-family:var(--f-display);font-weight:600;font-size:1.12rem;letter-spacing:-.01em;line-height:1.2;text-wrap:balance}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:.84rem}
+a{color:var(--accent)}
+
+.app{max-width:480px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+.view{display:flex;flex-direction:column;gap:18px}
+.topline{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.wordmark{font-family:var(--f-display);font-weight:800;font-size:1.05rem;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
+.wordmark i{display:inline-block;width:22px;height:22px;border-radius:7px;background:var(--accent);position:relative;flex:none}
+.wordmark i::after{content:"";position:absolute;left:6px;top:5px;width:8px;height:5px;border-left:2.5px solid var(--accent-ink);border-bottom:2.5px solid var(--accent-ink);transform:rotate(-45deg)}
+.pill{font-size:.72rem;font-weight:600;padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.hello{display:flex;flex-direction:column;gap:6px}
+

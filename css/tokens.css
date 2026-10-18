@@ -1,0 +1,26 @@
+/* tokens.css
+   Colours and fonts for the whole app. Change the look here, in one place.
+   Light values on :root; dark-mode values in the two blocks below (keep them in sync).
+*/
+:root{
+  --bg:#3012c8; --surface:#360202; --ink:#142019; --muted:#5B6A60; --line:#DAE2DB;
+  --accent:#6b0f0f; --accent-ink:#FFFFFF; --accent-soft:#DDEFE6;
+  --gold:#946112; --gold-soft:#FAEED6;
+  --bad:#A8322A; --bad-soft:#FBE4E1;
+  --shadow:rgb(15 40 28 / .07); --scrim:rgb(8 16 12 / .5);
+  --f-display:"Bricolage Grotesque","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#0D1310; --surface:#151D19; --ink:#E5ECE7; --muted:#98A79D; --line:#25302A;
+  --accent:#52C79B; --accent-ink:#05140E; --accent-soft:#16332A;
+  --gold:#EDBB62; --gold-soft:#372A12;
+  --bad:#F08A80; --bad-soft:#3A1B18;
+  --shadow:rgb(0 0 0 / .35); --scrim:rgb(0 0 0 / .65); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D1310; --surface:#151D19; --ink:#E5ECE7; --muted:#98A79D; --line:#25302A;
+  --accent:#52C79B; --accent-ink:#05140E; --accent-soft:#16332A;
+  --gold:#EDBB62; --gold-soft:#372A12;
+  --bad:#F08A80; --bad-soft:#3A1B18;
+  --shadow:rgb(0 0 0 / .35); --scrim:rgb(0 0 0 / .65); color-scheme:dark}
+

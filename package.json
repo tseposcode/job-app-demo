@@ -1,0 +1,23 @@
+{
+  "name": "job-auto",
+  "version": "0.2.0",
+  "private": true,
+  "description": "Job Auto test version: graduate and entry-level jobs with auto-apply. Browser-only demo.",
+  "type": "module",
+  "scripts": {
+    "start": "http-server . -p 5500 -c-1",
+    "lint": "eslint js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "playwright test",
+    "check": "npm run lint && npm run format:check && npm test"
+  },
+  "devDependencies": {
+    "@eslint/js": "9.17.0",
+    "@playwright/test": "1.56.0",
+    "eslint": "9.17.0",
+    "globals": "15.14.0",
+    "http-server": "14.1.1",
+    "prettier": "3.4.2"
+  }
+}

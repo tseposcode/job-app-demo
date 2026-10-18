@@ -1,0 +1,58 @@
+/* views.css
+   Styles used by only one page: the profile page and the admin page.
+*/
+/* Profile */
+.who-card{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding-block:6px 4px}
+.avatar{width:96px;height:96px;border-radius:50%;border:0;padding:0;cursor:pointer;position:relative;
+  background:var(--accent);color:var(--accent-ink);font-family:var(--f-display);font-weight:800;font-size:2rem;letter-spacing:-.02em;
+  display:flex;align-items:center;justify-content:center;overflow:hidden;box-shadow:0 0 0 4px var(--surface),0 0 0 5px var(--line)}
+.avatar img{width:100%;height:100%;object-fit:cover;display:block}
+.avatar .cam{position:absolute;right:3px;bottom:3px;width:26px;height:26px;border-radius:50%;background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;box-shadow:0 1px 4px var(--shadow)}
+.avatar .cam svg{width:14px;height:14px}
+.role{font-size:.92rem;color:var(--muted)}
+.sr{position:absolute;width:1px;height:1px;opacity:0;overflow:hidden;pointer-events:none}
+.list{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.row{display:grid;grid-template-columns:8rem minmax(0,1fr);gap:12px;padding:12px 16px;align-items:baseline}
+.row+.row,.list>*+*{border-top:1px solid var(--line)}
+.row dt{font-size:.84rem;color:var(--muted)}
+.row dd{font-weight:500;overflow-wrap:anywhere}
+.meter{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
+.meter i{display:block;height:100%;background:var(--accent);border-radius:4px}
+.cv{display:flex;align-items:center;gap:12px;padding:12px 16px}
+.cv .doc{width:38px;height:46px;border-radius:6px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.62rem;font-weight:700;letter-spacing:.04em;flex:none}
+.cv>div{min-width:0;flex:1;display:flex;flex-direction:column;gap:2px}
+.cv strong{font-weight:600;overflow-wrap:anywhere}
+.cv span{font-size:.8rem;color:var(--muted)}
+.cv-actions{display:flex;gap:6px;flex-wrap:wrap;padding:0 16px 12px}
+.setting{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 16px}
+.setting>div{display:flex;flex-direction:column;gap:2px;min-width:0}
+.setting span{font-size:.8rem;color:var(--muted)}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:10px;overflow:hidden;flex:none}
+.seg button{font:inherit;font-size:.84rem;font-weight:600;background:transparent;color:var(--ink);border:0;padding:8px 12px;cursor:pointer;min-height:38px}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink)}
+.switch{width:50px;height:30px;border-radius:999px;background:var(--line);border:0;padding:0;position:relative;cursor:pointer;flex:none}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:var(--surface);box-shadow:0 1px 3px rgb(0 0 0 / .25)}
+.switch[aria-checked="true"]{background:var(--accent)}
+.switch[aria-checked="true"]::after{left:23px}
+input[type=range]{width:100%;accent-color:var(--accent);margin:0}
+.range-row{display:grid;grid-template-columns:minmax(0,1fr) 3.2rem;gap:10px;align-items:center;padding:0 16px 14px}
+.range-row output{text-align:right;font-weight:700}
+.sample{font-size:.78rem;color:var(--muted);text-align:center;text-wrap:balance}
+.skills{display:flex;flex-wrap:wrap;gap:6px}
+.skill{font-size:.8rem;font-weight:600;padding:4px 10px;border-radius:999px;background:var(--accent-soft);color:var(--ink)}
+.skill.miss{background:transparent;box-shadow:inset 0 0 0 1px var(--line);color:var(--muted)}
+
+
+/* Admin */
+.adm-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 16px}
+.adm-row>div{min-width:0;display:flex;flex-direction:column;gap:2px}
+.adm-row strong{font-weight:600;overflow-wrap:anywhere}
+.adm-row .btns{display:flex;gap:6px;flex:none}
+.pin{display:flex;gap:10px;justify-content:center}
+.pin input{width:3.2rem;text-align:center;font-size:1.4rem;font-weight:700;padding:8px 0}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:2px}
+.stat b{font-family:var(--f-display);font-size:1.4rem;font-weight:800}
+.stat span{font-size:.76rem;color:var(--muted)}
+
