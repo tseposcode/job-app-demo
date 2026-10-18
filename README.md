@@ -29,8 +29,8 @@ After paying, auto-apply sends the CV to every strong match and the Applied tab 
 | Sample CV | Who | Jobs auto-apply sends to |
 |---|---|---|
 | Lerato Mokoena | Computer Science, Gauteng or remote | 4 (data and software) |
-| Sipho Ndlovu | Logistics diploma, KZN, Gauteng, Eastern Cape | 3 (supply chain) |
-| Aisha Petersen | BCom Accounting, Western Cape, Gauteng, KZN or remote | 3 (finance and admin) |
+| Sipho Ndlovu | Logistics diploma, KZN, Gauteng, Eastern Cape; his CV says he will relocate, so that box is ticked | 3 (supply chain) |
+| Aisha Petersen | BCom Accounting, Western Cape, Gauteng, KZN or remote | 3 (finance and admin), plus 2 more if she taps "Include them" (willing to relocate) |
 
 On Profile: cancel or keep the plan, turn marketing emails on or off, read the privacy notice, **download my data**, and **withdraw consent and delete the account**.
 

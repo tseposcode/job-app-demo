@@ -30,6 +30,8 @@ Code only calls **downwards** in this list. A page may use a service; a service 
 | Log in or sign up fails | `js/services/auth.js` (rules), `js/views/login.js` / `signup.js` (page) |
 | Match score is wrong or the "Why this match" text | `js/services/matching.js` |
 | Auto-apply sends to the wrong jobs | `js/services/applications.js` → `runAutoApply()` |
+| Location rules: provinces, remote, "Willing to relocate" | `js/services/matching.js` → `match()` (the location part) |
+| The "more jobs fit you outside your provinces" card | `js/views/jobs.js` → `relocateCard()`, `js/services/applications.js` → `relocationMatches()` |
 | Statuses (Sent / Viewed / Interview) behave oddly | `js/services/applications.js` → `makeApplication()`, `statusOf()` |
 | Search, filters or sorting on the Jobs page | `js/views/jobs.js` |
 | Applied page list or filter chips | `js/views/applied.js` |

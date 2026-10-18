@@ -169,6 +169,26 @@ test('uploading a PDF CV reads it', async ({ page }) => {
   await expect(page.locator('#pPhone')).toHaveValue('072 000 5678');
 });
 
+test('willing to relocate adds good jobs outside your provinces', async ({ page }) => {
+  await loginAsTest(page);
+  await expect(page.locator('#view')).toContainText('outside your provinces');
+  await page.click('#relocateOn');
+  await expect(page.locator('#toast')).toContainText('Auto-apply sent your CV to 2 new jobs');
+  await expect(page.locator('#relocateOn')).toHaveCount(0);
+  await page.click('.tab[data-go=profile]');
+  await expect(page.locator('#relocSw')).toHaveAttribute('aria-checked', 'true');
+  await page.click('#relocSw');
+  await expect(page.locator('#relocSw')).toHaveAttribute('aria-checked', 'false');
+});
+
+test('a CV that says "ready to relocate" ticks the box', async ({ page }) => {
+  await signUp(page, 'Sipho', 'Ndlovu', 'sipho2@test.com');
+  await agreeToPrivacy(page);
+  await page.click('[data-sample="1"]');
+  await page.click('#dForm button[type=submit]');
+  await expect(page.locator('#pRelocate')).toBeChecked();
+});
+
 test('cancel and keep the plan', async ({ page }) => {
   await loginAsTest(page);
   await page.click('.tab[data-go=profile]');

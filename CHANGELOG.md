@@ -2,6 +2,13 @@
 
 Notable changes a user or tester would notice. Newest first.
 
+## 0.4.0 (2026-10-18)
+
+- "Willing to relocate": a switch on Profile and a tick box in preferences. When on, auto-apply also sends to good jobs outside your provinces (they score a little lower than jobs in your provinces).
+- The Jobs page now says when good jobs are skipped only because of where they are, with a button to include them.
+- A CV that says the person is willing or ready to relocate ticks the box during sign-up.
+- New plan prices: R59 a month, R149 for 3 months, R499 a year.
+
 ## 0.3.1 (2026-10-18)
 
 - Plan page: three tiles (Monthly R60, 3 months R150, Yearly R699) with price per month, savings and a "Best value" badge.
