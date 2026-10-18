@@ -22,6 +22,12 @@ export function fmtDate(iso) {
   return `${+p[2]} ${MONTHS[+p[1] - 1]} ${p[0]}`;
 }
 
+// A timestamp as "18 Oct 2026".
+export function fmtDay(t) {
+  const d = new Date(t);
+  return `${d.getDate()} ${MONTHS[d.getMonth()]} ${d.getFullYear()}`;
+}
+
 export function ago(t) {
   const d = Date.now() - t;
   if (d < MIN) return 'just now';

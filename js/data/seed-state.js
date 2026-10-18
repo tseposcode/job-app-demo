@@ -1,8 +1,9 @@
 // seed-state.js
 // What a device starts with the first time (and after "Reset all test data"):
-// the sample jobs, the Thabang test account, and two earlier applications.
+// the sample jobs, the Thabang test account (already signed up, consented and
+// subscribed), and two earlier applications.
 
-import { DAY, DEFAULT_PIN, MIN, TEST_EMAIL, TEST_PASS } from '../config.js';
+import { DAY, DEFAULT_PIN, MIN, PLANS, PRIVACY_VERSION, TEST_EMAIL, TEST_PASS } from '../config.js';
 import { hashPass } from '../lib/utils.js';
 import { makeApplication } from '../services/applications.js';
 import { SEED_JOBS } from './seed-jobs.js';
@@ -43,6 +44,7 @@ export function createSeedState() {
     auto: { mode: 'auto', min: 75, paused: false },
     lastSeen: now,
     photo: null,
+    ...testAccountSignup(now),
   };
   // Two earlier applications so the Applied page is not empty on first open.
   s.apps.push(
@@ -62,7 +64,43 @@ export function createSeedState() {
   return s;
 }
 
-// Make sure the test account always exists, even on an older saved copy.
+// The sign-up records the test account needs so it skips straight to Jobs.
+function testAccountSignup(now) {
+  const plan = PLANS[0];
+  const started = now - 3 * DAY;
+  const renews = new Date(started);
+  renews.setMonth(renews.getMonth() + plan.months);
+  return {
+    onboarded: true,
+    consent: {
+      version: PRIVACY_VERSION,
+      at: started,
+      processing: true,
+      sharing: true,
+      adult: true,
+      marketing: false,
+      how: 'Test account, set up with the demo data',
+    },
+    consentLog: [{ at: started, version: PRIVACY_VERSION, what: `Agreed to privacy notice v${PRIVACY_VERSION}` }],
+    subscription: {
+      plan: plan.id,
+      price: plan.price,
+      status: 'active',
+      startedAt: started,
+      renewsAt: renews.getTime(),
+      ref: 'TEST-0001',
+      payments: [{ at: started, amount: plan.price, ref: 'TEST-0001', test: true }],
+    },
+  };
+}
+
+// Make sure the test account always exists and can log straight in, and bring
+// accounts saved by older versions (before sign-up steps) up to date.
 export function ensureTestAccount(state) {
-  if (!state.users[TEST_EMAIL]) state.users[TEST_EMAIL] = createSeedState().users[TEST_EMAIL];
+  const test = state.users[TEST_EMAIL];
+  if (!test) state.users[TEST_EMAIL] = createSeedState().users[TEST_EMAIL];
+  else if (!test.subscription || !test.consent) Object.assign(test, testAccountSignup(Date.now()));
+  Object.values(state.users).forEach((u) => {
+    if (u.onboarded === undefined) u.onboarded = !!u.cv;
+  });
 }

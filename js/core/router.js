@@ -2,23 +2,32 @@
 // Decides which page shows, keeps the tab bar and badge in step, and hands
 // every page the same small toolkit (ctx): go, refresh, toast, autoApply.
 //
+// The sign-up guard: a logged-in person who has not agreed to the privacy
+// notice, finished setup or picked a plan is always sent to that step first
+// (see services/access.js). Admin is the only page that skips it.
+//
 // To add a page: create js/views/<name>.js with render() and bind(root, ctx),
 // then add it to PAGES below (and to TAB_PAGES if it has a tab).
 
 import { $, $$ } from '../lib/utils.js';
-import { currentUser } from '../services/auth.js';
+import { currentUser, logout } from '../services/auth.js';
+import { pendingStep } from '../services/access.js';
 import { markApplicationsSeen, runAutoApply, unseenUpdates } from '../services/applications.js';
 import { closeSheet } from '../ui/sheet.js';
 import { toast } from '../ui/toast.js';
 import * as login from '../views/login.js';
 import * as signup from '../views/signup.js';
+import * as consent from '../views/consent.js';
+import * as setup from '../views/setup.js';
+import * as subscribe from '../views/subscribe.js';
 import * as jobs from '../views/jobs.js';
 import * as applied from '../views/applied.js';
 import * as profile from '../views/profile.js';
 import * as admin from '../views/admin.js';
 
-const PAGES = { login, signup, jobs, applied, profile, admin };
+const PAGES = { login, signup, consent, setup, subscribe, jobs, applied, profile, admin };
 const PUBLIC_PAGES = ['login', 'signup', 'admin']; // reachable without logging in
+const SIGNUP_PAGES = ['login', 'signup', 'consent', 'setup', 'subscribe']; // done once you are in
 const TAB_PAGES = ['jobs', 'applied', 'profile'];
 
 let current = 'jobs';
@@ -38,11 +47,6 @@ export const ctx = {
 
 export function go(page) {
   current = page;
-  try {
-    history.replaceState(null, '', `#${page}`);
-  } catch {
-    /* some viewers block history changes */
-  }
   closeSheet();
   refresh();
   window.scrollTo(0, 0);
@@ -54,11 +58,29 @@ export function startAt(page) {
 }
 
 export const currentPage = () => current;
+// Pages that change on their own (statuses) and have no half-typed forms.
+export const isLivePage = () => TAB_PAGES.includes(current);
+
+// Send the person to the page they are allowed to see right now.
+function resolvePage(user) {
+  if (!PAGES[current]) current = 'jobs';
+  if (!user) return PUBLIC_PAGES.includes(current) ? current : 'login';
+  if (current === 'admin') return current;
+  const step = pendingStep(user);
+  if (step) return step;
+  return SIGNUP_PAGES.includes(current) ? 'jobs' : current;
+}
 
 export function refresh() {
   const user = currentUser();
-  if (!user && !PUBLIC_PAGES.includes(current)) current = 'login';
-  if (user && (current === 'login' || current === 'signup')) current = 'jobs';
+  current = resolvePage(user);
+  if (location.hash !== `#${current}`) {
+    try {
+      history.replaceState(null, '', `#${current}`);
+    } catch {
+      /* some viewers block history changes */
+    }
+  }
 
   const showTabs = !!user && TAB_PAGES.includes(current);
   $('#tabs').hidden = !showTabs;
@@ -77,6 +99,13 @@ export function refresh() {
   root.innerHTML = page.render();
   // Any button with data-go="page" moves to that page.
   $$('[data-go]', root).forEach((b) => b.addEventListener('click', () => go(b.dataset.go)));
+  // Any button with data-logout logs out.
+  $$('[data-logout]', root).forEach((b) =>
+    b.addEventListener('click', () => {
+      logout();
+      go('login');
+    }),
+  );
   page.bind(root, ctx);
 }
 

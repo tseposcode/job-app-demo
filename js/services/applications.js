@@ -8,6 +8,7 @@ import { seededRandom, uid } from '../lib/utils.js';
 import { match, isStrongMatch, profileGaps } from './matching.js';
 import { isClosed } from './jobs.js';
 import { currentUser } from './auth.js';
+import { canApply } from './access.js';
 
 // Build an application record. `plan` decides when the "employer" views it and
 // what they decide. Pass a plan to control it (seed data), or leave it out.
@@ -71,7 +72,7 @@ export function applicationFor(jobId) {
 
 export function apply(jobId, method) {
   const u = currentUser();
-  if (!u || applicationFor(jobId)) return null;
+  if (!u || !canApply(u) || applicationFor(jobId)) return null;
   const s = getState();
   const app = makeApplication(s, jobId, u.email, method, Date.now());
   s.apps.push(app);
@@ -96,9 +97,10 @@ export function waitingMatches() {
 
 // Auto-apply: send the CV to every new strong match. Returns how many it sent.
 // Skips jobs the person withdrew from, so it never re-applies against their wish.
+// Needs consent, a finished setup and an active plan (see access.js).
 export function runAutoApply() {
   const u = currentUser();
-  if (!u || u.auto.mode !== 'auto' || u.auto.paused || profileGaps(u).length) return 0;
+  if (!u || !canApply(u) || u.auto.mode !== 'auto' || u.auto.paused || profileGaps(u).length) return 0;
   const s = getState();
   let sent = 0;
   for (const job of s.jobs) {

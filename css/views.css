@@ -1,5 +1,5 @@
 /* views.css
-   Styles used by only one page: the profile page and the admin page.
+   Styles used by only one page: the sign-up steps, the profile page and the admin page.
 */
 /* Profile */
 .who-card{display:flex;flex-direction:column;align-items:center;gap:8px;text-align:center;padding-block:6px 4px}
@@ -15,7 +15,7 @@
 .row{display:grid;grid-template-columns:8rem minmax(0,1fr);gap:12px;padding:12px 16px;align-items:baseline}
 .row+.row,.list>*+*{border-top:1px solid var(--line)}
 .row dt{font-size:.84rem;color:var(--muted)}
-.row dd{font-weight:500;overflow-wrap:anywhere}
+.row dd{font-weight:500;overflow-wrap:anywhere;white-space:pre-line}
 .meter{height:8px;border-radius:4px;background:var(--line);overflow:hidden}
 .meter i{display:block;height:100%;background:var(--accent);border-radius:4px}
 .cv{display:flex;align-items:center;gap:12px;padding:12px 16px}
@@ -51,8 +51,36 @@ input[type=range]{width:100%;accent-color:var(--accent);margin:0}
 .adm-row .btns{display:flex;gap:6px;flex:none}
 .pin{display:flex;gap:10px;justify-content:center}
 .pin input{width:3.2rem;text-align:center;font-size:1.4rem;font-weight:700;padding:8px 0}
-.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stats{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 .stat{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px;display:flex;flex-direction:column;gap:2px}
 .stat b{font-family:var(--f-display);font-size:1.4rem;font-weight:800}
 .stat span{font-size:.76rem;color:var(--muted)}
 
+
+/* Sign-up steps */
+.step-n{font-size:.78rem;font-weight:700;color:var(--accent);letter-spacing:.02em}
+.steps{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:4px;margin-bottom:6px}
+.steps i{height:4px;border-radius:2px;background:var(--line)}
+.steps i.done{background:var(--accent)}
+.tick{display:flex;align-items:flex-start;gap:10px;font-size:.92rem;cursor:pointer}
+.tick input{width:20px;height:20px;margin:1px 0 0;flex:none;accent-color:var(--accent);cursor:pointer}
+.tick em{font-style:normal;font-size:.76rem;font-weight:600;color:var(--muted);white-space:nowrap}
+.pick{all:unset;box-sizing:border-box;width:100%;display:flex;align-items:center;gap:12px;padding:12px 16px;cursor:pointer}
+.pick:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+.pick[disabled]{opacity:.5;cursor:default}
+.pick .doc{width:34px;height:42px;border-radius:6px;background:var(--accent-soft);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:.6rem;font-weight:700;flex:none}
+.pick-t{min-width:0;display:flex;flex-direction:column;gap:2px}
+.pick-t span{font-size:.8rem;color:var(--muted)}
+.plans{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.plan{font:inherit;color:var(--ink);text-align:left;background:var(--surface);border:1.5px solid var(--line);border-radius:16px;padding:14px;
+  display:flex;flex-direction:column;gap:4px;cursor:pointer;position:relative;min-width:0}
+.plan[aria-checked="true"]{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.plan .price{font-family:var(--f-display);font-weight:800;font-size:1.5rem;letter-spacing:-.02em}
+.plan .best{position:absolute;top:-9px;right:12px;font-size:.68rem;font-weight:700;background:var(--accent);color:var(--accent-ink);padding:2px 8px;border-radius:999px}
+.center{text-align:center}
+.notice{display:flex;flex-direction:column;gap:14px}
+.notice h4{margin:0 0 4px;font-size:.95rem;font-weight:700}
+.notice p{font-size:.9rem;color:var(--ink)}
+.list-actions{display:flex;gap:8px;flex-wrap:wrap;padding:12px 16px}
+.list-actions .confirm{flex:1}
+@media (max-width:400px){.stats{grid-template-columns:1fr 1fr}}

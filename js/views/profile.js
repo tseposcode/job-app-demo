@@ -1,17 +1,18 @@
 // profile.js
-// The Profile page: photo, CV, auto-apply settings, details and preferences.
+// The Profile page: photo, CV, auto-apply settings, details, preferences,
+// and (from profile-account.js) the plan and privacy sections.
 // setupProfileUploads() wires the hidden photo and CV file pickers once at start.
 
 import { $, $$, ago, esc, initials, money } from '../lib/utils.js';
 import { ICON } from '../lib/icons.js';
 import { save } from '../core/store.js';
-import { deleteCv, getCv, putCv } from '../core/files.js';
+import { deleteCv, getCv } from '../core/files.js';
 import { currentUser, logout } from '../services/auth.js';
 import { completeness } from '../services/matching.js';
+import { checkCvFile, storeCv } from '../services/cv.js';
 import { confirmInline } from '../ui/forms.js';
 import { openProfileEdit } from './sheets/profile-edit.js';
-
-const MAX_CV_BYTES = 5 * 1024 * 1024;
+import { bindAccountSections, renderAccountSections } from './profile-account.js';
 
 const row = (label, value) =>
   `<div class="row"><dt>${esc(label)}</dt><dd>${value ? esc(value) : '<span class="muted">Not added</span>'}</dd></div>`;
@@ -24,7 +25,7 @@ function cvBlock(u) {
   const kb = Math.max(1, Math.round(u.cv.size / 1024));
   return `<div class="cv"><span class="doc">${esc(ext)}</span><div><strong>${esc(u.cv.name)}</strong><span class="num">${kb} KB · uploaded ${esc(
     ago(u.cv.at),
-  )}${u.cv.sample ? ' · sample' : ''}</span></div></div>
+  )}${u.cv.sample || u.cv.demo ? ' · sample' : ''}</span></div></div>
     <div class="cv-actions"><button class="btn sm" id="cvReplace">Replace</button>${
       u.cv.sample ? '' : '<button class="btn sm" id="cvView">View</button>'
     }<button class="btn sm danger" id="cvRemove">Remove</button></div>`;
@@ -78,6 +79,7 @@ export function render() {
         p.minPay ? `${money(p.minPay)} per month` : '',
       )}
     </dl></section>
+    ${renderAccountSections(u)}
     <div class="actions"><button class="btn" id="logout">Log out</button><button class="btn ghost" data-go="admin">Admin</button></div>`;
 }
 
@@ -143,6 +145,8 @@ export function bind(root, ctx) {
     ctx.refresh();
   });
 
+  bindAccountSections(root, ctx, u);
+
   $('#logout', root).addEventListener('click', () => {
     logout();
     ctx.go('login');
@@ -182,11 +186,9 @@ export function setupProfileUploads(ctx) {
     const u = currentUser();
     input.value = '';
     if (!file || !u) return;
-    if (!/\.(pdf|docx?)$/i.test(file.name)) return ctx.toast('Upload a PDF or Word document.');
-    if (file.size > MAX_CV_BYTES) return ctx.toast('That file is over 5 MB. Upload a smaller CV.');
-    await putCv(u.email, file);
-    u.cv = { name: file.name, size: file.size, at: Date.now(), sample: false };
-    save();
+    const problem = checkCvFile(file);
+    if (problem) return ctx.toast(problem);
+    await storeCv(u, file);
     ctx.toast('CV uploaded.');
     ctx.autoApply();
     ctx.refresh();

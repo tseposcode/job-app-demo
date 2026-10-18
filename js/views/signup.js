@@ -4,10 +4,11 @@
 import { $ } from '../lib/utils.js';
 import { signup } from '../services/auth.js';
 import { showError } from '../ui/forms.js';
+import { stepHeader } from '../ui/steps.js';
 
 export function render() {
   return `
-    <div class="hello"><h1>Create an account</h1><p class="muted">It takes a minute. You can add your CV next.</p></div>
+    ${stepHeader(1, 'Create an account', 'Six short steps: account, privacy, CV, details, preferences and plan.')}
     <form class="card form" id="signupForm" novalidate>
       <div class="grid2">
         <label class="field"><span>Name</span><input type="text" id="suName" autocomplete="given-name" required></label>
@@ -31,7 +32,6 @@ export function bind(root, ctx) {
       password: $('#suPass', root).value,
     });
     if (!result.ok) return showError($('#suErr', root), result.error);
-    ctx.toast('Account created. Add your CV and preferences to start applying.');
-    ctx.go('profile');
+    ctx.go('consent');
   });
 }

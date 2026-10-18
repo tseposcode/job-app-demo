@@ -5,7 +5,7 @@
 import { TICK_MS } from './config.js';
 import { $, $$ } from './lib/utils.js';
 import { initStore, getState } from './core/store.js';
-import { ctx, currentPage, go, refresh, startAt, updateBadge } from './core/router.js';
+import { ctx, currentPage, go, isLivePage, refresh, startAt, updateBadge } from './core/router.js';
 import { createSeedState, ensureTestAccount } from './data/seed-state.js';
 import { currentUser } from './services/auth.js';
 import { isSheetOpen } from './ui/sheet.js';
@@ -26,8 +26,8 @@ window.addEventListener('hashchange', () => {
 if (currentUser()) ctx.autoApply();
 
 setInterval(() => {
-  // Don't redraw under an open sheet or while someone is typing.
-  if (isSheetOpen()) return updateBadge();
+  // Only redraw the tab pages, never a form, an open sheet or while someone is typing.
+  if (!isLivePage() || isSheetOpen()) return updateBadge();
   const active = document.activeElement;
   if (active && /INPUT|SELECT|TEXTAREA/.test(active.tagName)) return;
   if (currentUser()) ctx.autoApply();

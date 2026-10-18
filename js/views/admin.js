@@ -2,12 +2,13 @@
 // The Admin page, behind a 4-digit PIN: manage jobs, see applications,
 // change the PIN, reset the test data.
 
-import { $, $$, ago, esc, fmtDate } from '../lib/utils.js';
+import { $, $$, ago, esc, fmtDate, fmtDay } from '../lib/utils.js';
 import { getState, replaceState, save } from '../core/store.js';
 import { deleteCv } from '../core/files.js';
 import { currentUser } from '../services/auth.js';
 import { allJobs, deleteJob, isClosed, jobById, openJobs } from '../services/jobs.js';
 import { allApplications, statusOf } from '../services/applications.js';
+import { hasActiveSubscription } from '../services/subscription.js';
 import { createSeedState } from '../data/seed-state.js';
 import { confirmInline, showError } from '../ui/forms.js';
 import { openJobEdit } from './sheets/job-edit.js';
@@ -59,13 +60,27 @@ function renderAdmin() {
         })
         .join('')
     : '<div class="adm-row"><span class="muted">No applications yet.</span></div>';
+  const users = Object.values(s.users);
+  const subscribers = users.filter((u) => hasActiveSubscription(u)).length;
+  // Who agreed to what and when: the consent record POPIA expects us to keep.
+  const accountRows = users
+    .map((u) => {
+      const c = u.consent;
+      const consent = c ? `consent ${fmtDay(c.at)} (v${esc(c.version)})${c.marketing ? ', marketing yes' : ''}` : 'no consent yet';
+      const plan = hasActiveSubscription(u) ? `${u.subscription.status === 'active' ? 'paying' : 'cancelled'}` : 'no plan';
+      return `<div class="adm-row"><div><strong>${esc(`${u.name} ${u.surname}`)}</strong><span class="small muted">${consent} · ${plan}${
+        u.onboarded ? '' : ' · setup not finished'
+      }</span></div></div>`;
+    })
+    .join('');
   return `
     <div class="hello"><h1>Admin</h1><p class="muted">Manage the jobs on this device and see every application.</p></div>
     <div class="stats"><div class="stat"><b class="num">${openJobs().length}</b><span>Open jobs</span></div><div class="stat"><b class="num">${
       apps.length
-    }</b><span>Applications</span></div><div class="stat"><b class="num">${Object.keys(s.users).length}</b><span>Accounts</span></div></div>
+    }</b><span>Applications</span></div><div class="stat"><b class="num">${users.length}</b><span>Accounts</span></div><div class="stat"><b class="num">${subscribers}</b><span>Subscribers</span></div></div>
     <section class="section"><div class="section-h"><h2>Jobs</h2><button class="btn sm primary" id="addJob">Add job</button></div><div class="list">${jobRows}</div></section>
     <section class="section"><h2>Applications</h2><div class="list">${appRows}</div></section>
+    <section class="section"><h2>Accounts</h2><div class="list">${accountRows}</div></section>
     <section class="section"><h2>Settings</h2><div class="card form">
       <form class="form" id="pinChange" novalidate><label class="field"><span>New admin PIN (4 digits)</span><input type="password" inputmode="numeric" maxlength="4" id="newPin" autocomplete="off"></label><p class="err" id="newPinErr" hidden></p><button class="btn sm" type="submit">Change PIN</button></form>
       <div id="resetBox"><button class="btn sm danger" id="resetAsk">Reset all test data</button></div>

@@ -1,0 +1,32 @@
+// privacy-notice.js
+// The words of the privacy notice (POPIA section 18) shown at sign-up and on Profile.
+// DRAFT for the test version: a lawyer must check it before the app goes live.
+// If you change what it says, bump PRIVACY_VERSION in config.js so everyone agrees again.
+
+import { PRIVACY_CONTACT, PRIVACY_VERSION } from '../config.js';
+
+export const NOTICE_TITLE = `Job Auto privacy notice (version ${PRIVACY_VERSION}, draft)`;
+
+// The short version on the sign-up step.
+export const SUMMARY = [
+  ['What we collect', 'Your account details, your CV and profile (education, skills, experience, where and what you want to work), and the jobs you apply to.'],
+  ['Why', 'To match you with jobs and to send your CV to employers when you apply, or when auto-apply applies for you.'],
+  ['Who sees it', 'Only the employers you apply to, and the companies that host the app or take payments for us. We never sell your information.'],
+  ['Your rights', 'See, fix, download or delete your information, and withdraw your consent, at any time from your profile.'],
+];
+
+// The full notice, opened from "Read the full privacy notice".
+export const SECTIONS = [
+  ['Who we are', `Job Auto is a job-matching service that is still being tested. The name and contact details of our Information Officer will be added here before launch. Until then, write to ${PRIVACY_CONTACT}.`],
+  ['What we collect', 'Account: name, surname, email and password (stored scrambled, never as plain text). CV and profile: phone number, town and province, qualifications, skills, experience, job preferences and a photo if you add one. Activity: the jobs you apply to, their status and your settings. Plan: which plan you chose, its dates and a payment reference. We never see or store card numbers.'],
+  ['What we do not need', 'We do not ask for your ID number, and we do not need information about your health, religion, race, union membership or criminal record. If your CV has these, think about taking them off before you upload it.'],
+  ['Why we use it', 'To create your account; to match you with jobs; to send your CV and profile to employers when you apply or when auto-apply applies for you; to show you updates on your applications; to run your plan; and to keep the service safe. With your separate permission only, to email you job tips and offers.'],
+  ['Is it voluntary?', 'Yes. You choose what to give us. Without your CV and profile we cannot match you or apply for you.'],
+  ['Who we share it with', 'Employers whose jobs you apply to, yourself or through auto-apply. Companies that host the app or process payments for us, under contracts that require them to keep it safe. We do not sell or rent your information to anyone.'],
+  ['Outside South Africa', 'Some of the companies that host data may store it outside South Africa. We will only use ones that give protection similar to POPIA, as section 72 requires. In this test version, everything stays on your own device.'],
+  ['How long we keep it', 'While your account is open. When you delete your account, we delete your information, except records the law requires us to keep (for example payment records). In this test version, deleting removes everything from your device at once.'],
+  ['How we protect it', 'We limit who can see your information, use secure connections, and will tell you and the Information Regulator if your information is ever accessed without permission.'],
+  ['Your rights', 'You can ask what information we hold about you; correct it or delete it; download a copy; object to how we use it; withdraw your consent at any time (this does not undo what was done before); and stop marketing emails at any time. You can also complain to the Information Regulator: inforegulator.org.za.'],
+  ['Age', 'Job Auto is for people aged 18 and older.'],
+  ['Changes to this notice', 'If we change this notice, we will show you the new version and ask you to agree again before you carry on.'],
+];
