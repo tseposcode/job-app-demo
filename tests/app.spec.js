@@ -87,16 +87,107 @@ test('admin PIN, add and delete a job', async ({ page }) => {
   await expect(page.locator('#view')).not.toContainText('Test Job QA');
 });
 
-test('new account is asked to finish the profile', async ({ page }) => {
+async function signUp(page, name, surname, email) {
   await page.goto('/index.html#signup');
-  await page.fill('#suName', 'Lerato');
-  await page.fill('#suSurname', 'Mokoena');
-  await page.fill('#suEmail', 'lerato@test.com');
+  await page.fill('#suName', name);
+  await page.fill('#suSurname', surname);
+  await page.fill('#suEmail', email);
   await page.fill('#suPass', 'abc123');
   await page.click('#signupForm button[type=submit]');
-  await expect(page.locator('#view')).toContainText('Lerato Mokoena');
-  await page.click('.tab[data-go=jobs]');
-  await expect(page.locator('#view')).toContainText('Finish your profile');
+  await expect(page.locator('h1')).toHaveText('Your privacy');
+}
+
+async function agreeToPrivacy(page) {
+  await page.check('#cProcess');
+  await page.check('#cShare');
+  await page.check('#cAdult');
+  await page.click('#consentForm button[type=submit]');
+  await expect(page.locator('h1')).toHaveText('Add your CV');
+}
+
+test('privacy step needs the required boxes, and declining deletes the account', async ({ page }) => {
+  await signUp(page, 'Test', 'Person', 'decline@test.com');
+  // Nothing is ticked for the person.
+  expect(await page.locator('#consentForm input:checked').count()).toBe(0);
+  await page.click('#consentForm button[type=submit]');
+  await expect(page.locator('#cErr')).toContainText('three required boxes');
+  // The app cannot be used before agreeing.
+  await page.goto('/index.html#jobs');
+  await expect(page.locator('h1')).toHaveText('Your privacy');
+  await page.click('#cDecline');
+  await page.click('[data-yes]');
+  await expect(page.locator('#loginForm')).toBeVisible();
+  await page.fill('#liEmail', 'decline@test.com');
+  await page.fill('#liPass', 'abc123');
+  await page.click('#loginForm button[type=submit]');
+  await expect(page.locator('#liErr')).toBeVisible();
+});
+
+test('full sign-up with a sample CV: consent, CV read, plan, auto-apply', async ({ page }) => {
+  await signUp(page, 'Lerato', 'Mokoena', 'lerato@test.com');
+  await agreeToPrivacy(page);
+  await page.click('[data-sample="0"]');
+  // The CV reader fills in the profile.
+  await expect(page.locator('h1')).toHaveText('Check your details');
+  await expect(page.locator('#view')).toContainText('We read your CV');
+  await expect(page.locator('#pCity')).toHaveValue('Johannesburg');
+  await expect(page.locator('#pProv')).toHaveValue('Gauteng');
+  await expect(page.locator('#pQual')).toHaveValue('Degree');
+  await expect(page.locator('#pSkills')).toHaveValue(/Python, SQL/);
+  await page.click('#dForm button[type=submit]');
+  await expect(page.locator('h1')).toHaveText('What jobs do you want?');
+  await expect(page.locator('input[name=pf][value="Data and analytics"]')).toBeChecked();
+  await expect(page.locator('#pRemote')).toBeChecked();
+  await page.click('#prefForm button[type=submit]');
+  // Paywall: matches are shown but nothing is sent until there is a plan.
+  await expect(page.locator('h1')).toHaveText('Choose your plan');
+  await expect(page.locator('#view')).toContainText('jobs match you right now');
+  await page.goto('/index.html#jobs');
+  await expect(page.locator('h1')).toHaveText('Choose your plan');
+  await page.click('[data-plan=monthly]');
+  await page.click('#toPay');
+  await expect(page.locator('.sheet')).toContainText('Test mode');
+  expect(await page.locator('.sheet input').count()).toBe(0); // no card fields
+  await page.click('#payTest');
+  await expect(page.locator('#toast')).toContainText('Auto-apply sent your CV to');
+  await expect(page.locator('#view')).toContainText('Hi Lerato');
+  await page.click('.tab[data-go=applied]');
+  expect(await page.locator('.jobs > li').count()).toBeGreaterThan(2);
+  // The consent record is kept.
+  await page.click('.tab[data-go=profile]');
+  await expect(page.locator('#view')).toContainText('to notice version 1.0');
+});
+
+test('uploading a PDF CV reads it', async ({ page }) => {
+  await signUp(page, 'Sipho', 'Ndlovu', 'sipho@test.com');
+  await agreeToPrivacy(page);
+  await page.setInputFiles('#setupCv', 'samples/cvs/Sipho_Ndlovu_CV.pdf');
+  await expect(page.locator('#pCity')).toHaveValue('Durban');
+  await expect(page.locator('#pQual')).toHaveValue('Diploma');
+  await expect(page.locator('#pPhone')).toHaveValue('072 000 5678');
+});
+
+test('cancel and keep the plan', async ({ page }) => {
+  await loginAsTest(page);
+  await page.click('.tab[data-go=profile]');
+  await page.click('#subCancel');
+  await page.click('[data-yes]');
+  await expect(page.locator('#view')).toContainText('Ends');
+  await page.click('#subResume');
+  await expect(page.locator('#view')).toContainText('Renews');
+});
+
+test('download my data, then delete the account', async ({ page }) => {
+  await loginAsTest(page);
+  await page.click('.tab[data-go=profile]');
+  const [download] = await Promise.all([page.waitForEvent('download'), page.click('#dlData')]);
+  expect(download.suggestedFilename()).toBe('job-auto-my-data.json');
+  const data = JSON.parse(await (await download.createReadStream()).toArray().then((c) => Buffer.concat(c).toString()));
+  expect(data.profile.email).toBe('thabang@test.com');
+  expect(data.profile.pass).toBeUndefined();
+  await page.click('#delAcct');
+  await page.click('[data-yes]');
+  await expect(page.locator('#loginForm')).toBeVisible();
 });
 
 test('no sideways scrolling on a phone', async ({ page }) => {
