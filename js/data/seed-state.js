@@ -38,6 +38,7 @@ export function createSeedState() {
       types: ['Graduate programme', 'Internship', 'Entry-level job'],
       provinces: ['Gauteng'],
       remote: true,
+      relocate: false,
       minPay: 8000,
     },
     cv: { name: 'Thabang_Jameson_CV.pdf', size: 182000, at: now - 3 * DAY, sample: true },

@@ -3,6 +3,8 @@
 // Change the scoring weights here. Nothing in this file touches the screen.
 //
 // Weights: field 30, job type 15, qualification 20, location 15, pay 10, skills 10.
+// Location: 15 in a province you picked (or remote, if you want remote work);
+// 10 elsewhere if you are willing to relocate, so jobs near you still rank first.
 
 import { QUALS } from '../config.js';
 import { money } from '../lib/utils.js';
@@ -38,11 +40,15 @@ export function match(user, job) {
   });
 
   const inProvince = (p.provinces || []).includes(job.province);
-  const locOk = job.mode === 'Remote' ? !!p.remote || inProvince : inProvince;
-  if (locOk) score += 15;
+  const remote = job.mode === 'Remote';
+  const relocating = !remote && !inProvince && !!p.relocate;
+  const locOk = remote ? !!p.remote || inProvince : inProvince || relocating;
+  score += relocating ? 10 : locOk ? 15 : 0;
   let locText;
-  if (job.mode === 'Remote') {
+  if (remote) {
     locText = locOk ? 'Remote, and you are open to remote work' : 'Remote, but you have not chosen remote work';
+  } else if (relocating) {
+    locText = `${job.province} is outside your provinces, but you are willing to relocate`;
   } else {
     locText = locOk ? `${job.province} is a province you picked` : `${job.province} is outside your provinces`;
   }

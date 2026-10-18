@@ -7,7 +7,7 @@ import { ICON } from '../lib/icons.js';
 import { currentUser } from '../services/auth.js';
 import { allJobs, isClosed, jobById, openJobs } from '../services/jobs.js';
 import { match, profileGaps } from '../services/matching.js';
-import { apply, applicationFor, statusOf, waitingMatches } from '../services/applications.js';
+import { apply, applicationFor, relocationMatches, statusOf, waitingMatches } from '../services/applications.js';
 import { save } from '../core/store.js';
 import { openJobDetail } from './sheets/job-detail.js';
 
@@ -28,7 +28,8 @@ function statusCard(u) {
     return '<div class="status off"><span class="dot"></span><div><strong>Auto-apply is paused.</strong><span>Nothing is sent until you turn it back on.</span></div><button class="btn sm" id="resumeAuto">Resume</button></div>';
   }
   if (u.auto.mode === 'auto') {
-    return `<div class="status"><span class="dot"></span><div><strong>Auto-apply is on.</strong><span>Your CV goes to every job in your areas at ${u.auto.min}% match or higher.</span></div></div>`;
+    const where = u.prefs.relocate ? 'that fits you, anywhere you would relocate,' : 'in your areas';
+    return `<div class="status"><span class="dot"></span><div><strong>Auto-apply is on.</strong><span>Your CV goes to every job ${where} at ${u.auto.min}% match or higher.</span></div></div>`;
   }
   const waiting = waitingMatches().length;
   const text = waiting
@@ -37,6 +38,17 @@ function statusCard(u) {
   return `<div class="status"><span class="dot"></span><div><strong>One-tap apply.</strong><span>${text}</span></div>${
     waiting ? `<button class="btn sm primary" id="applyAll">Apply to ${waiting}</button>` : ''
   }</div>`;
+}
+
+// Good jobs skipped only because they are outside the person's provinces.
+function relocateCard(u) {
+  if (profileGaps(u).length) return '';
+  const n = relocationMatches().length;
+  if (!n) return '';
+  const them = n === 1 ? 'it' : 'them';
+  return `<div class="status warn"><span class="dot"></span><div><strong>${n} more ${n === 1 ? 'job fits' : 'jobs fit'} you outside your provinces.</strong><span>${
+    u.auto.mode === 'auto' ? 'Auto-apply skips' : 'We leave out'
+  } ${them} because of where ${n === 1 ? 'it is' : 'they are'}. Willing to relocate?</span></div><button class="btn sm" id="relocateOn">Include ${them}</button></div>`;
 }
 
 function jobTile(u, job) {
@@ -98,6 +110,7 @@ export function render() {
   return `
     <div class="hello"><h1>Hi ${esc(u.name || 'there')}</h1><p class="muted">${openJobs().length} open graduate and entry-level jobs.</p></div>
     ${statusCard(u)}
+    ${relocateCard(u)}
     <div class="toolbar">
       <input type="search" id="q" placeholder="Search jobs, companies, skills" value="${esc(filters.q)}" aria-label="Search jobs">
       <div class="filters">
@@ -159,6 +172,12 @@ export function bind(root, ctx) {
     }),
   );
 
+  $('#relocateOn', root)?.addEventListener('click', () => {
+    currentUser().prefs.relocate = true;
+    save();
+    if (!ctx.autoApply()) ctx.toast('Willing to relocate is on. Change it any time on your profile.');
+    ctx.refresh();
+  });
   $('#resumeAuto', root)?.addEventListener('click', () => {
     currentUser().auto.paused = false;
     save();

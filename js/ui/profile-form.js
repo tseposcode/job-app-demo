@@ -37,7 +37,9 @@ export const prefsFields = (p = {}) => `
   <div class="field"><span>Fields you want</span>${checkChips('pf', FIELDS, p.fields || [])}</div>
   <div class="field"><span>Job types</span>${checkChips('pt', TYPES, p.types || [])}</div>
   <div class="field"><span>Provinces</span>${checkChips('pp', PROVINCES, p.provinces || [])}</div>
-  <label class="check"><input type="checkbox" id="pRemote"${p.remote ? ' checked' : ''}><span>Open to remote work</span></label>
+  <div class="checks"><label class="check"><input type="checkbox" id="pRemote"${p.remote ? ' checked' : ''}><span>Open to remote work</span></label>
+  <label class="check"><input type="checkbox" id="pRelocate"${p.relocate ? ' checked' : ''}><span>Willing to relocate</span></label></div>
+  <p class="small muted">Willing to relocate: we also apply to jobs outside your provinces.</p>
   <label class="field"><span>Minimum pay per month (rand)</span><input type="number" id="pPay" min="0" step="500" value="${esc(
     p.minPay || '',
   )}"></label>`;
@@ -81,6 +83,7 @@ export function readPrefs(root) {
         types: checkedValues('pt', root),
         provinces: checkedValues('pp', root),
         remote: $('#pRemote', root).checked,
+        relocate: $('#pRelocate', root).checked,
         minPay: Math.max(0, parseInt($('#pPay', root).value, 10) || 0),
       },
     },

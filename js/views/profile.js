@@ -35,7 +35,10 @@ export function render() {
   const u = currentUser();
   const p = u.prefs || {};
   const pct = completeness(u);
-  const where = [...(p.provinces || [])].join(', ') + (p.remote ? `${(p.provinces || []).length ? ' + ' : ''}remote` : '');
+  const where =
+    [...(p.provinces || [])].join(', ') +
+    (p.remote ? `${(p.provinces || []).length ? ' + ' : ''}remote` : '') +
+    (p.relocate ? '. Willing to relocate' : '');
   return `
     <div class="who-card">
       <button type="button" class="avatar" id="avatarBtn" aria-label="Change profile photo">${
@@ -55,6 +58,7 @@ export function render() {
         }">One-tap</button></div></div>
       <div class="setting"><div><strong>Minimum match</strong><span>Only jobs at or above this score count as matches</span></div></div>
       <div class="range-row"><input type="range" id="minMatch" min="50" max="95" step="5" value="${u.auto.min}" aria-label="Minimum match"><output id="minOut" class="num">${u.auto.min}%</output></div>
+      <div class="setting"><div><strong>Willing to relocate</strong><span>Also apply to jobs outside your provinces</span></div><button class="switch" id="relocSw" role="switch" aria-checked="${!!p.relocate}" aria-label="Willing to relocate"></button></div>
       <div class="setting"><div><strong>Pause applying</strong><span>Stops all auto-apply until you resume</span></div><button class="switch" id="pauseSw" role="switch" aria-checked="${!!u
         .auto.paused}" aria-label="Pause applying"></button></div>
     </div></section>
@@ -133,6 +137,14 @@ export function bind(root, ctx) {
   slider.addEventListener('change', () => {
     u.auto.min = parseInt(slider.value, 10);
     save();
+    ctx.autoApply();
+    ctx.refresh();
+  });
+
+  $('#relocSw', root).addEventListener('click', () => {
+    u.prefs.relocate = !u.prefs.relocate;
+    save();
+    ctx.toast(u.prefs.relocate ? 'Willing to relocate is on.' : 'Only jobs in your provinces now.');
     ctx.autoApply();
     ctx.refresh();
   });

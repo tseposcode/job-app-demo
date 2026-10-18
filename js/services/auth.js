@@ -60,7 +60,7 @@ function newUser({ email, name, surname, password }) {
     gradYear: '',
     skills: [],
     experience: '',
-    prefs: { fields: [], types: [], provinces: [], remote: false, minPay: 0 },
+    prefs: { fields: [], types: [], provinces: [], remote: false, relocate: false, minPay: 0 },
     cv: null,
     auto: { mode: 'one', min: 75, paused: false },
     lastSeen: Date.now(),

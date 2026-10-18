@@ -135,6 +135,13 @@ export function parseCv(text) {
     found.push('job preferences');
   }
 
+  const willing = /\b(willing|happy|ready|open|able) to relocate/i;
+  const unwilling = /\b(not|un)\s*(willing|happy|ready|open|able) to relocate/i;
+  if (willing.test(text) && !unwilling.test(text)) {
+    out.prefs = { ...(out.prefs || {}), relocate: true };
+    found.push('that you can relocate');
+  }
+
   // A South African ID number is 13 digits. Employers don't need it at this stage.
   const hasIdNumber = /\b\d{6}\s?\d{4}\s?\d{2}\s?\d\b/.test(text);
 

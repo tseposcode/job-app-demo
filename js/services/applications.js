@@ -95,6 +95,21 @@ export function waitingMatches() {
   );
 }
 
+// Jobs that fit apart from being outside the person's provinces: what
+// "Willing to relocate" would add. Empty when it is already on.
+export function relocationMatches() {
+  const u = currentUser();
+  if (!u || (u.prefs && u.prefs.relocate)) return [];
+  const asRelocating = { ...u, prefs: { ...u.prefs, relocate: true } };
+  return getState().jobs.filter(
+    (j) =>
+      !isClosed(j) &&
+      !applicationFor(j.id) &&
+      !isStrongMatch(match(u, j), u.auto.min) &&
+      isStrongMatch(match(asRelocating, j), u.auto.min),
+  );
+}
+
 // Auto-apply: send the CV to every new strong match. Returns how many it sent.
 // Skips jobs the person withdrew from, so it never re-applies against their wish.
 // Needs consent, a finished setup and an active plan (see access.js).
