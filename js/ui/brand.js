@@ -1,6 +1,6 @@
 // brand.js
 // The Gentle-TT mark (flower, hands and "Gentle TT") with the company line.
-// Used at the bottom of Log in, Create an account and Profile.
+// Shown at the very bottom of Log in, Create an account and Profile (see BRAND_PAGES in router.js).
 // The mark is drawn in the app's gold (--gold), so it suits light and dark mode.
 
 import { COMPANY } from '../config.js';

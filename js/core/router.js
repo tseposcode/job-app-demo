@@ -13,6 +13,7 @@ import { $, $$ } from '../lib/utils.js';
 import { currentUser, logout } from '../services/auth.js';
 import { pendingStep } from '../services/access.js';
 import { markApplicationsSeen, runAutoApply, unseenUpdates } from '../services/applications.js';
+import { madeBy } from '../ui/brand.js';
 import { closeSheet } from '../ui/sheet.js';
 import { toast } from '../ui/toast.js';
 import * as login from '../views/login.js';
@@ -27,6 +28,7 @@ import * as admin from '../views/admin.js';
 
 const PAGES = { login, signup, consent, setup, subscribe, jobs, applied, profile, admin };
 const PUBLIC_PAGES = ['login', 'signup', 'admin']; // reachable without logging in
+const BRAND_PAGES = ['login', 'signup', 'profile']; // Gentle-TT logo at the very bottom
 const SIGNUP_PAGES = ['login', 'signup', 'consent', 'setup', 'subscribe']; // done once you are in
 const TAB_PAGES = ['jobs', 'applied', 'profile'];
 
@@ -89,6 +91,7 @@ export function refresh() {
     if (t.dataset.go === current) t.setAttribute('aria-current', 'page');
     else t.removeAttribute('aria-current');
   });
+  $('#brandFoot').innerHTML = BRAND_PAGES.includes(current) ? madeBy(current === 'profile' ? 'madeBy' : '') : '';
   $('#topPill').textContent = current === 'admin' ? 'Admin' : 'Test version';
 
   if (user && current === 'applied') markApplicationsSeen();

@@ -10,7 +10,6 @@ import { deleteCv, getCv } from '../core/files.js';
 import { currentUser, logout } from '../services/auth.js';
 import { completeness } from '../services/matching.js';
 import { checkCvFile, storeCv } from '../services/cv.js';
-import { madeBy } from '../ui/brand.js';
 import { confirmInline } from '../ui/forms.js';
 import { openProfileEdit } from './sheets/profile-edit.js';
 import { bindAccountSections, renderAccountSections } from './profile-account.js';
@@ -85,8 +84,7 @@ export function render() {
       )}
     </dl></section>
     ${renderAccountSections(u)}
-    <div class="actions"><button class="btn" id="logout">Log out</button><button class="btn ghost" data-go="admin">Admin</button></div>
-    ${madeBy('madeBy')}`;
+    <div class="actions"><button class="btn" id="logout">Log out</button><button class="btn ghost" data-go="admin">Admin</button></div>`;
 }
 
 export function bind(root, ctx) {

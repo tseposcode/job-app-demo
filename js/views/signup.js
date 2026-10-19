@@ -3,7 +3,6 @@
 
 import { $ } from '../lib/utils.js';
 import { signup } from '../services/auth.js';
-import { madeBy } from '../ui/brand.js';
 import { showError } from '../ui/forms.js';
 import { stepHeader } from '../ui/steps.js';
 
@@ -20,8 +19,7 @@ export function render() {
       <p class="err" id="suErr" hidden></p>
       <button class="btn primary wide" type="submit">Create account</button>
     </form>
-    <p class="small muted" style="text-align:center">Already have an account? <button class="linkbtn" data-go="login">Log in</button></p>
-    ${madeBy()}`;
+    <p class="small muted" style="text-align:center">Already have an account? <button class="linkbtn" data-go="login">Log in</button></p>`;
 }
 
 export function bind(root, ctx) {
