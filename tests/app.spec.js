@@ -228,6 +228,21 @@ async function actLikeIphoneSafari(page) {
   await page.reload(); // the patch only applies to a freshly loaded page
 }
 
+// Safari can't loop over a ReadableStream with `for await`. Remove that from Chrome
+// to check PDFs are still read.
+test('iPhone Safari: PDF CVs are read without stream looping', async ({ page }) => {
+  await page.addInitScript(() => {
+    delete ReadableStream.prototype[Symbol.asyncIterator];
+    delete ReadableStream.prototype.values;
+  });
+  await page.reload();
+  await signUp(page, 'Test', 'Person', 'safaripdf@test.com');
+  await agreeToPrivacy(page);
+  await page.click('[data-sample="0"]');
+  await expect(page.locator('#view')).toContainText('We read your CV');
+  await expect(page.locator('#pCity')).toHaveValue('Johannesburg');
+});
+
 for (const [i, file] of [
   [0, 'a PDF'],
   [5, 'a Word'],

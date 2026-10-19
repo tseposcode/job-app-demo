@@ -2,6 +2,10 @@
 
 Notable changes a user or tester would notice. Newest first.
 
+## 0.7.1 (2026-10-19)
+
+- Fixed: PDF CVs could not be read on iPhones (Safari, including iOS 26). They showed "We could not read this file (Error code: TypeError)". Word CVs were not affected.
+
 ## 0.7.0 (2026-10-19)
 
 - Gentle-TT branding: the Gentle TT logo (flower, hands and name) now sits at the very bottom of Log in, Create an account and Profile, under the test-version note, with "Job Auto is a product of Gentle-TT (Pty) Ltd." beneath it. It is drawn in the app's gold, so it suits light and dark mode.
