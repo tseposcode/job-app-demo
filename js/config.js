@@ -58,10 +58,14 @@ export const PRIVACY_VERSION = '1.0';
 export const PRIVACY_CONTACT = 'privacy@jobauto.example';
 
 // Made-up CVs in samples/cvs/ that a tester can use instead of uploading their own.
+// The last three are in real-world styles (no "Looking for" section, a sidebar layout, a Word file).
 export const SAMPLE_CVS = [
   { file: 'samples/cvs/Lerato_Mokoena_CV.pdf', person: 'Lerato Mokoena', about: 'Computer Science graduate, Gauteng' },
   { file: 'samples/cvs/Sipho_Ndlovu_CV.pdf', person: 'Sipho Ndlovu', about: 'Logistics diploma, KwaZulu-Natal' },
   { file: 'samples/cvs/Aisha_Petersen_CV.pdf', person: 'Aisha Petersen', about: 'BCom Accounting graduate, Western Cape' },
+  { file: 'samples/cvs/Nomsa_Dlamini_CV.pdf', person: 'Nomsa Dlamini', about: 'HR graduate, Pretoria. Classic CV layout' },
+  { file: 'samples/cvs/Kabelo_Mahlangu_CV.pdf', person: 'Kabelo Mahlangu', about: 'Civil engineering, Polokwane. Two-column CV' },
+  { file: 'samples/cvs/Zanele_Khumalo_CV.docx', person: 'Zanele Khumalo', about: 'Marketing diploma, Umlazi. Word CV' },
 ];
 
 // Sign-up has this many steps: account, privacy, CV, details, preferences, plan.

@@ -8,7 +8,7 @@ import { $, $$, esc } from '../lib/utils.js';
 import { save } from '../core/store.js';
 import { currentUser } from '../services/auth.js';
 import { profileGaps } from '../services/matching.js';
-import { applyCvDetails, checkCvFile, readCv, storeCv } from '../services/cv.js';
+import { applyCvDetails, CV_ACCEPT, checkCvFile, readCv, storeCv } from '../services/cv.js';
 import { showError } from '../ui/forms.js';
 import { detailsFields, educationFields, prefsFields, readDetails, readEducation, readPrefs } from '../ui/profile-form.js';
 import { accountLine, stepHeader } from '../ui/steps.js';
@@ -38,14 +38,14 @@ function renderCv(u) {
     <div class="card">
       ${current}
       <button class="btn primary wide" type="button" id="pickCv">${u.cv ? 'Upload a different CV' : 'Upload my CV'}</button>
-      <input type="file" id="setupCv" class="sr" accept=".pdf,.doc,.docx,application/pdf" tabindex="-1">
-      <p class="small muted">PDF or Word, up to 5 MB. In the test version it stays on this device.</p>
+      <input type="file" id="setupCv" class="sr" accept="${CV_ACCEPT}" tabindex="-1">
+      <p class="small muted">PDF or Word (.docx), up to 5 MB. In the test version it stays on this device.</p>
       <p class="err" id="cvErr" hidden></p>
     </div>
     <section class="section"><h2>Or try a sample CV</h2><p class="small muted">Made-up people for testing the app. They are not real.</p>
       <div class="list">${SAMPLE_CVS.map(
         (s, i) =>
-          `<button class="pick" type="button" data-sample="${i}"><span class="doc">PDF</span><span class="pick-t"><strong>${esc(
+          `<button class="pick" type="button" data-sample="${i}"><span class="doc">${s.file.endsWith('.docx') ? 'WORD' : 'PDF'}</span><span class="pick-t"><strong>${esc(
             s.person,
           )}</strong><span>${esc(s.about)}</span></span></button>`,
       ).join('')}</div>
@@ -65,11 +65,12 @@ async function useFile(root, ctx, file, demo) {
   try {
     await storeCv(u, file, { demo });
     const result = await readCv(file);
-    applyCvDetails(u, result.profile);
+    applyCvDetails(u, result.profile, { replace: true });
     goStep(u, 'details', {
-      found: result.found.filter((f) => f !== 'name'),
+      found: result.found.filter((f) => f !== 'name' && f !== 'job preferences'),
+      prefsFrom: result.found.includes('job preferences') ? 'cv' : result.suggested.length ? 'suggested' : '',
       note: result.note,
-      idWarning: result.hasIdNumber,
+      sensitive: result.sensitive,
     });
     ctx.refresh();
   } catch {
@@ -96,7 +97,8 @@ function bindCv(root, ctx, u) {
       try {
         const res = await fetch(sample.file);
         if (!res.ok) throw new Error(res.statusText);
-        const file = new File([await res.blob()], sample.file.split('/').pop(), { type: 'application/pdf' });
+        const blob = await res.blob();
+        const file = new File([blob], sample.file.split('/').pop(), { type: blob.type });
         useFile(root, ctx, file, true);
       } catch {
         showError($('#cvErr', root), 'The sample CV could not be loaded. Open the app through a web server (see README).');
@@ -115,9 +117,10 @@ function renderDetails(u) {
   } else if (st.note) {
     notes.push(banner('warn', 'Fill in your details', st.note));
   }
-  if (st.idWarning) {
+  if ((st.sensitive || []).length) {
+    const what = listText(st.sensitive.map((s) => (s === 'ID number' ? 'your ID number' : `${s} details`)));
     notes.push(
-      banner('warn', 'Your CV shows an ID number.', 'Employers do not need it at this stage. Think about removing it from your CV before you apply.'),
+      banner('warn', `Your CV shows ${what}.`, 'Employers do not need this to consider you, and we do not save it. Think about removing it from your CV before you apply.'),
     );
   }
   return `${stepHeader(4, 'Check your details', 'Employers see these with your CV.')}
@@ -153,9 +156,12 @@ function bindDetails(root, ctx, u) {
 function renderPrefs(u) {
   const st = u.setup || {};
   const mode = st.mode || 'auto';
-  const fromCv = (st.found || []).includes('job preferences');
+  const from = {
+    cv: banner('', 'Filled in from your CV.', 'Check that these are still what you want.'),
+    suggested: banner('', 'Suggested from your CV.', 'We picked these from what you studied, your skills and where you live. Change anything that is not right.'),
+  };
   return `${stepHeader(5, 'What jobs do you want?', 'We only apply to jobs that fit these. You can change them any time.')}
-    ${fromCv ? banner('', 'Filled in from your CV.', 'Check that these are still what you want.') : ''}
+    ${from[st.prefsFrom] || ''}
     <form class="card form" id="prefForm" novalidate>
       ${prefsFields(u.prefs)}
       <div class="field"><span>How should Job Auto apply?</span>
