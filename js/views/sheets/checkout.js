@@ -21,6 +21,7 @@ import {
   WALLETS,
 } from '../../services/payments.js';
 import { perText } from '../../services/subscription.js';
+import { LEGAL } from '../../data/terms.js';
 import { closeSheet, openSheet } from '../../ui/sheet.js';
 
 const LOCK =
@@ -126,7 +127,7 @@ export function openCheckout({ plan, user, onPaid, onDone }) {
                <p class="small muted">You approve the payment in your banking app. Instant EFT pays once and does not renew by itself.</p>`
         }
         <p class="err" id="coErr"${error ? '' : ' hidden'}>${esc(error)}</p>
-        <p class="small muted">${terms()}</p>
+        <p class="small muted">${terms()} See the <button type="button" class="linkbtn" id="coTerms">Terms of Service</button> and <button type="button" class="linkbtn" id="coRefunds">Cancellation and refund policy</button>.</p>
         <button class="btn primary wide" type="submit" id="coPay">Pay ${money(plan.price)}</button>
       </form>
       ${secureLine()}`;
@@ -138,6 +139,9 @@ export function openCheckout({ plan, user, onPaid, onDone }) {
       }),
     );
     $$('[data-wallet]', box).forEach((b) => b.addEventListener('click', () => drawWallet(b.dataset.wallet)));
+    // Opening a legal text replaces this panel, so reopen checkout when it closes.
+    $('#coTerms', box).addEventListener('click', () => showLegal('terms'));
+    $('#coRefunds', box).addEventListener('click', () => showLegal('refunds'));
     if (tab === 'card') bindCardFields(box, user);
     $('#coForm', box).addEventListener('submit', (e) => {
       e.preventDefault();
@@ -151,6 +155,13 @@ export function openCheckout({ plan, user, onPaid, onDone }) {
       if (problem) return showErr(problem);
       run({ type: 'card', card });
     });
+  }
+
+  function showLegal(kind) {
+    const doc = LEGAL[kind];
+    box.innerHTML = `<div class="notice">${doc.sections.map(([h, p]) => `<section><h4>${esc(h)}</h4><p>${esc(p)}</p></section>`).join('')}</div>
+      <button class="btn primary wide" id="legalBack">Back to checkout</button>`;
+    $('#legalBack', box).addEventListener('click', () => drawForm());
   }
 
   const showErr = (text) => {

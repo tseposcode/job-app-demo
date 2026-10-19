@@ -4,8 +4,8 @@
 import { FIELDS, PROVINCES, TYPES } from '../config.js';
 import { $, $$, esc, money, postedText } from '../lib/utils.js';
 import { ICON } from '../lib/icons.js';
-import { currentUser } from '../services/auth.js';
-import { allJobs, isClosed, jobById, openJobs } from '../services/jobs.js';
+import { currentUser, isVerified, sendVerification } from '../services/auth.js';
+import { allJobs, applyOf, isClosed, jobById, openJobs } from '../services/jobs.js';
 import { match, profileGaps } from '../services/matching.js';
 import { apply, applicationFor, relocationMatches, statusOf, waitingMatches } from '../services/applications.js';
 import { save } from '../core/store.js';
@@ -16,6 +16,13 @@ const filters = { q: '', type: '', field: '', province: '', sort: 'match' };
 const SORTS = { match: 'Best match', new: 'Newest', closing: 'Closing soon', pay: 'Highest pay' };
 
 const scoreClass = (score) => (score >= 80 ? 'hi' : score < 50 ? 'lo' : '');
+
+function verifyCard(u) {
+  if (isVerified(u)) return '';
+  return `<div class="status warn"><span class="dot"></span><div><strong>Confirm your email address</strong><span>We sent a link to ${esc(
+    u.email,
+  )}. Check your Inbox.</span></div><button class="btn sm" data-go="inbox">Inbox</button><button class="linkbtn small" id="resendVerify">Resend</button></div>`;
+}
 
 function statusCard(u) {
   const gaps = profileGaps(u);
@@ -60,6 +67,7 @@ function jobTile(u, job) {
     footer = `<span class="state ${st.key}">${esc(st.label)}</span>`;
   } else if (isClosed(job)) footer = '<span class="muted">Closed</span>';
   else if (!m.qualOk) footer = `<span class="muted">Needs ${esc(job.qual.toLowerCase())}</span>`;
+  else if (applyOf(job).method === 'site') footer = `<button class="btn sm" data-job="${job.id}">Apply on their site</button>`;
   else footer = `<button class="btn sm primary" data-apply="${job.id}">Apply</button>`;
   const place = job.city !== 'Remote' ? `${esc(job.city)}, ${esc(job.province)}` : esc(job.city);
   return `<li class="job">
@@ -109,6 +117,7 @@ export function render() {
   const filtered = filters.q || filters.type || filters.field || filters.province;
   return `
     <div class="hello"><h1>Hi ${esc(u.name || 'there')}</h1><p class="muted">${openJobs().length} open graduate and entry-level jobs.</p></div>
+    ${verifyCard(u)}
     ${statusCard(u)}
     ${relocateCard(u)}
     <div class="toolbar">
@@ -135,6 +144,11 @@ export function render() {
 }
 
 export function bind(root, ctx) {
+  $('#resendVerify', root)?.addEventListener('click', () => {
+    sendVerification(currentUser());
+    ctx.toast('We sent a new link. Check your Inbox.');
+    ctx.refresh();
+  });
   $$('[data-job]', root).forEach((b) => b.addEventListener('click', () => openJobDetail(b.dataset.job, ctx)));
   $$('[data-apply]', root).forEach((b) =>
     b.addEventListener('click', () => {

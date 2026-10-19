@@ -50,6 +50,17 @@ Code only calls **downwards** in this list. A page may use a service; a service 
 | Checkout screens: wallets, card form, Instant EFT, receipt, change card | `js/views/sheets/checkout.js` |
 | Taking payment, test cards, card checks, going live with a payment provider | `js/services/payments.js` (provider adapters), `js/config.js` → `PAYMENT_PROVIDER` |
 | Payment method and Billing history on Profile | `js/views/profile-account.js` |
+| Renewals, failed payments, reminders, refunds | `js/services/billing.js` |
+| The test clock (Admin) | `js/core/clock.js` |
+| Emails and the Inbox | `js/services/notify.js` (sending), `js/views/inbox.js` (page) |
+| Where data is saved (device or server) | `js/core/backend.js` |
+| Where jobs come from; how to apply to a job | `js/services/job-source.js`, `js/services/jobs.js` → `applyOf()` |
+| The cover note sent with applications | `js/services/cover-note.js`; preview in `js/views/sheets/employer-view.js` |
+| Forgot password, confirm email | `js/services/auth.js`, `js/views/forgot.js`, `js/views/reset.js` |
+| Help page, contact messages | `js/views/help.js`, `js/services/support.js` |
+| Terms of Service, refund policy wording | `js/data/terms.js` |
+| Admin Business numbers | `js/services/business.js` |
+| What is left before launch | `docs/LAUNCH.md` |
 | Plan prices | `js/config.js` → `PLANS` |
 | Someone is sent to the wrong sign-up step | `js/services/access.js` → `pendingStep()`, used by `js/core/router.js` |
 | Plan and Privacy sections on Profile; download my data; delete account | `js/views/profile-account.js`, `js/services/account.js` |

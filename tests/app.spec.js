@@ -162,7 +162,7 @@ test('full sign-up with a sample CV: consent, CV read, plan, auto-apply', async 
   expect(await page.locator('.jobs > li').count()).toBeGreaterThan(2);
   // The consent record is kept.
   await page.click('.tab[data-go=profile]');
-  await expect(page.locator('#view')).toContainText('to notice version 1.2');
+  await expect(page.locator('#view')).toContainText('to notice version 1.3');
 });
 
 test('uploading a PDF CV reads it', async ({ page }) => {
@@ -322,13 +322,14 @@ test('the test account accepts a new notice by itself', async ({ page }) => {
 
 // ---------- Checkout ----------
 
-async function toCheckout(page, email) {
+async function toCheckout(page, email, plan) {
   await signUp(page, 'Pay', 'Tester', email);
   await agreeToPrivacy(page);
   await page.click('[data-sample="0"]');
   await page.click('#dForm button[type=submit]');
   await page.click('#prefForm button[type=submit]');
   await expect(page.locator('h1')).toHaveText('Choose your plan');
+  if (plan) await page.click(`[data-plan=${plan}]`);
   await page.click('#toPay');
   await expect(page.locator('.sheet')).toContainText('Total due today');
 }
@@ -419,6 +420,165 @@ test('Profile: payment method, billing history and changing the card', async ({ 
   await expect(page.locator('#toast')).toContainText('Mastercard •••• 4444 will be used');
   await expect(page.locator('#view')).toContainText('Mastercard •••• 4444');
   await expect(page.locator('#view')).toContainText('expires 08 / 29');
+});
+
+// ---------- Launch-ready features ----------
+
+async function unlockAdmin(page) {
+  await page.goto('/index.html#admin');
+  for (let i = 0; i < 4; i++) await page.locator('.pinD').nth(i).fill('2468'[i]);
+  await expect(page.locator('#addJob')).toBeVisible();
+}
+
+test('jobs: apply on the company site, and auto-apply skips those jobs', async ({ page }) => {
+  await loginAsTest(page);
+  const autoOnSite = await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem('jobauto:v1'));
+    return s.apps.filter((a) => a.method === 'auto' && ['j05', 'j08', 'j14', 'j18'].includes(a.jobId)).length;
+  });
+  expect(autoOnSite).toBe(0);
+  await page.locator('.job-open[data-job=j05]').click();
+  await expect(page.locator('.sheet')).toContainText("On the company's website");
+  await page.click('#siteOpen');
+  await expect(page.locator('#toast')).toContainText('made up');
+  await page.click('#siteDone');
+  await expect(page.locator('#toast')).toContainText('on their website');
+  await page.click('.tab[data-go=applied]');
+  await expect(page.locator('#view')).toContainText('Applied on site');
+});
+
+test('employer view: cover note and email for an application', async ({ page }) => {
+  await loginAsTest(page);
+  await page.click('.tab[data-go=applied]');
+  await page.locator('[data-job=j09]').click();
+  await expect(page.locator('.sheet')).toContainText('By email');
+  await page.click('#empView');
+  await expect(page.locator('.sheet')).toContainText('Dear Sable Financial hiring team');
+  await expect(page.locator('.sheet')).toContainText('careers@sable-financial.example');
+  await expect(page.locator('.sheet')).toContainText('Thabang_Jameson_CV.pdf');
+});
+
+test('forgot password: reset link, new password, log in', async ({ page }) => {
+  await page.goto('/index.html');
+  await page.click('.forgot');
+  await page.fill('#fgEmail', 'nobody@test.com');
+  await page.click('#fgForm button[type=submit]');
+  await expect(page.locator('h1')).toHaveText('Check your email');
+  await expect(page.locator('#openReset')).toHaveCount(0);
+  await page.click('#backLogin');
+  await page.click('.forgot');
+  await page.fill('#fgEmail', 'thabang@test.com');
+  await page.click('#fgForm button[type=submit]');
+  await page.click('#openReset');
+  await page.fill('#rsPass', 'newpass1');
+  await page.fill('#rsPass2', 'newpass2');
+  await page.click('#rsForm button[type=submit]');
+  await expect(page.locator('#rsErr')).toContainText('not the same');
+  await page.fill('#rsPass2', 'newpass1');
+  await page.click('#rsForm button[type=submit]');
+  await expect(page.locator('#toast')).toContainText('Password changed');
+  await page.fill('#liEmail', 'thabang@test.com');
+  await page.fill('#liPass', 'newpass1');
+  await page.click('#loginForm button[type=submit]');
+  await expect(page.locator('#view')).toContainText('Hi Thabang');
+});
+
+test('inbox: confirm email, receipt and application emails', async ({ page }) => {
+  await toCheckout(page, 'inbox@test.com');
+  await page.click('#ccTest');
+  await page.click('#coPay');
+  await page.click('#coDone');
+  await expect(page.locator('#view')).toContainText('Confirm your email address');
+  await expect(page.locator('#bellN')).toBeVisible();
+  await page.click('#bell');
+  await expect(page.locator('h1')).toHaveText('Inbox');
+  await expect(page.locator('#view')).toContainText('Your Job Auto receipt');
+  await expect(page.locator('#view')).toContainText('Auto-apply sent your CV');
+  await page.locator('.mail', { hasText: 'Confirm your email address' }).click();
+  await page.click('#mailAct');
+  await expect(page.locator('#toast')).toContainText('email is confirmed');
+  await page.click('.tab[data-go=jobs]');
+  await expect(page.locator('#view')).not.toContainText('Confirm your email address');
+});
+
+test('inbox: the test account gets employer replies by email', async ({ page }) => {
+  await loginAsTest(page);
+  await page.click('#bell');
+  await expect(page.locator('#view')).toContainText('Interview invitation: Finance Graduate Programme');
+});
+
+test('help: questions, contact and a message the admin sees', async ({ page }) => {
+  await page.goto('/index.html');
+  await page.locator('[data-go=help]').first().click();
+  await expect(page.locator('h1')).toHaveText('Help and contact');
+  await page.locator('summary', { hasText: 'How do I cancel?' }).click();
+  await expect(page.locator('#view')).toContainText('Profile → Plan → Cancel plan');
+  await page.fill('#hpName', 'Pat');
+  await page.fill('#hpEmail', 'pat@test.com');
+  await page.fill('#hpMsg', 'How do refunds work for a yearly plan?');
+  await page.click('#hpForm button[type=submit]');
+  await expect(page.locator('#view')).toContainText('Message sent');
+  await unlockAdmin(page);
+  await expect(page.locator('#view')).toContainText('How do refunds work for a yearly plan?');
+});
+
+test('terms: on sign-up and in checkout', async ({ page }) => {
+  await page.goto('/index.html#signup');
+  await page.click('#suTerms');
+  await expect(page.locator('.sheet')).toContainText('Terms of Service');
+  await page.click('.sheet [data-close] >> nth=0');
+  await toCheckout(page, 'terms@test.com');
+  await page.click('#coRefunds');
+  await expect(page.locator('.sheet')).toContainText('Changed your mind? 7 days');
+  await page.click('#legalBack');
+  await expect(page.locator('.sheet')).toContainText('Total due today');
+});
+
+test('billing: test clock renews a plan, a failed renewal is fixed with a new card', async ({ page }) => {
+  await toCheckout(page, 'renew@test.com', 'monthly');
+  await fillCard(page, '4000 0000 0000 0341');
+  await page.click('#coPay');
+  await page.click('#coDone');
+  await unlockAdmin(page);
+  await expect(page.locator('#view')).toContainText('Business');
+  await page.click('[data-jump="30"]');
+  await expect(page.locator('#toast')).toContainText('Renewed 1');
+  await page.click('[data-jump="1"]');
+  await page.click('[data-jump="1"]');
+  await expect(page.locator('#topPill')).toContainText('Admin');
+  await page.goto('/index.html#profile');
+  await expect(page.locator('#topPill')).toContainText('Test ·');
+  await expect(page.locator('#view')).toContainText("Your last payment didn't go through");
+  await page.click('#chCard');
+  await page.click('#ccTest');
+  await page.click('#ccForm button[type=submit]');
+  await expect(page.locator('#toast')).toContainText('Payment received');
+  await expect(page.locator('#view')).not.toContainText("didn't go through");
+  await expect(page.locator('.bills .bill')).toHaveCount(2);
+});
+
+test('billing: Instant EFT plan ends when its period is over', async ({ page }) => {
+  await toCheckout(page, 'eftend@test.com', 'monthly');
+  await page.click('[data-tab=eft]');
+  await page.selectOption('#eftBank', 'FNB');
+  await page.click('#coPay');
+  await page.click('#coDone');
+  await unlockAdmin(page);
+  await page.click('[data-jump="30"]');
+  await page.click('[data-jump="7"]');
+  await page.goto('/index.html#jobs');
+  await expect(page.locator('h1')).toHaveText('Your plan has ended');
+});
+
+test('admin: refund ends the plan and emails the customer', async ({ page }) => {
+  await loginAsTest(page);
+  await unlockAdmin(page);
+  await page.click('[data-refund="TEST-0001"]');
+  await page.click('[data-yes]');
+  await expect(page.locator('#toast')).toContainText('Refunded');
+  await expect(page.locator('#view')).toContainText('Refunded');
+  await page.goto('/index.html#jobs');
+  await expect(page.locator('h1')).toHaveText('Your plan has ended');
 });
 
 test('cancel and keep the plan', async ({ page }) => {

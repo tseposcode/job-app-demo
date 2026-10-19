@@ -5,11 +5,13 @@
 
 import { $, esc, fmtDay, money } from '../lib/utils.js';
 import { cancelSubscription, perText, planById, resumeSubscription, setPaymentMethod } from '../services/subscription.js';
-import { methodLabel } from '../services/payments.js';
+import { cardExpiresAt, methodLabel } from '../services/payments.js';
+import { retryNow } from '../services/billing.js';
 import { openChangeCard } from './sheets/checkout.js';
 import { deleteAccount, exportMyData, setMarketing } from '../services/account.js';
 import { confirmInline } from '../ui/forms.js';
 import { openPrivacyNotice } from './sheets/privacy-notice.js';
+import { openLegal } from './sheets/legal.js';
 
 const row = (label, value) => `<div class="row"><dt>${esc(label)}</dt><dd>${esc(value)}</dd></div>`;
 
@@ -19,7 +21,17 @@ function planSection(u) {
   const plan = planById(sub.plan);
   const per = plan ? perText(plan) : 'per month';
   const active = sub.status === 'active';
-  const renewText = !active ? 'Ends' : sub.autoRenew === false ? 'Plan ends' : 'Next payment';
+  const pastDue = sub.status === 'past_due';
+  const renewText = pastDue ? 'Payment due' : !active ? 'Ends' : sub.autoRenew === false ? 'Plan ends' : 'Next payment';
+  const failed = pastDue
+    ? `<div class="status bad"><span class="dot"></span><div><strong>Your last payment didn't go through</strong><span>Update your card to keep your plan. We try again every 2 days; without payment your plan ends on ${fmtDay(
+        sub.graceUntil,
+      )}.</span></div></div>`
+    : '';
+  const expiring =
+    active && sub.autoRenew !== false && sub.method && sub.method.type === 'card' && cardExpiresAt(sub.method.expiry) <= sub.renewsAt
+      ? `<div class="status warn"><span class="dot"></span><div><strong>Your card expires before your next payment</strong><span>Update it so your plan carries on.</span></div></div>`
+      : '';
   const method = sub.method
     ? `<div class="row"><dt>Payment method</dt><dd><span>${esc(methodLabel(sub.method))}${
         sub.method.expiry ? `<span class="muted small"> · expires ${esc(sub.method.expiry)}</span>` : ''
@@ -29,18 +41,18 @@ function planSection(u) {
     .slice()
     .reverse()
     .map(
-      (p) => `<li class="bill"><div><strong class="num">${money(p.amount)}</strong><span class="muted small">${fmtDay(p.at)} · ${esc(
+      (p) => `<li class="bill"><div><strong class="num">${money(p.amount)}${p.refundedAt ? ' <span class="state rejected">Refunded</span>' : ''}</strong><span class="muted small">${fmtDay(p.at)} · ${esc(
         methodLabel(p.method) || 'Payment',
       )}</span></div><span class="muted small">${esc(p.ref)}${p.test ? ' · test' : ''}</span></li>`,
     )
     .join('');
-  return `<section class="section"><h2>Plan</h2><dl class="list">
+  return `<section class="section"><h2>Plan</h2>${failed}${expiring}<dl class="list">
     ${row('Plan', `Job Auto Premium · ${plan ? plan.name : sub.plan} · ${money(sub.price)} ${per}`)}
-    ${row(renewText, fmtDay(sub.renewsAt))}
+    ${row(renewText, fmtDay(pastDue ? sub.failedAt : sub.renewsAt))}
     ${method}
     ${active && sub.autoRenew === false ? '<p class="small muted pad">Instant EFT pays once. Add a card to renew by itself, or pay again before your plan ends.</p>' : ''}
     <div class="list-actions" id="subBox">${
-      active
+      active || pastDue
         ? '<button class="btn sm danger" id="subCancel">Cancel plan</button>'
         : '<button class="btn sm primary" id="subResume">Keep my plan</button>'
     }</div>
@@ -54,6 +66,7 @@ function privacySection(u) {
     <dl>${row('Consent', c.at ? `Given ${fmtDay(c.at)} to notice version ${c.version}` : 'Not given')}</dl>
     <div class="setting"><div><strong>Job tips by email</strong><span>Optional. Turn off any time.</span></div><button class="switch" id="mktSw" role="switch" aria-checked="${!!c.marketing}" aria-label="Job tips by email"></button></div>
     <div class="list-actions"><button class="btn sm" id="privNotice">Privacy notice</button><button class="btn sm" id="dlData">Download my data</button></div>
+    <div class="list-actions"><button class="btn sm" id="legTerms">Terms of Service</button><button class="btn sm" id="legRefunds">Cancellation and refunds</button><button class="btn sm" data-go="help">Help and contact</button></div>
     <div class="list-actions" id="delBox"><button class="btn sm danger" id="delAcct">Withdraw consent and delete account</button></div>
   </div></section>`;
 }
@@ -80,7 +93,9 @@ export function bindAccountSections(root, ctx, u) {
       user: u,
       onSaved: (method) => {
         setPaymentMethod(method);
-        ctx.toast(`${methodLabel(method)} will be used for your next payments.`);
+        const retry = retryNow(u);
+        if (retry) ctx.toast(retry.ok ? `Payment received from ${methodLabel(method)}. Your plan carries on.` : `${methodLabel(method)} saved, but the payment failed: ${retry.error}`);
+        else ctx.toast(`${methodLabel(method)} will be used for your next payments.`);
         ctx.refresh();
       },
     }),
@@ -100,6 +115,8 @@ export function bindAccountSections(root, ctx, u) {
   });
 
   $('#privNotice', root).addEventListener('click', openPrivacyNotice);
+  $('#legTerms', root).addEventListener('click', () => openLegal('terms'));
+  $('#legRefunds', root).addEventListener('click', () => openLegal('refunds'));
 
   $('#dlData', root).addEventListener('click', () => {
     const blob = new Blob([JSON.stringify(exportMyData(), null, 2)], { type: 'application/json' });

@@ -2,13 +2,18 @@
 // The Admin page, behind a 4-digit PIN: manage jobs, see applications,
 // change the PIN, reset the test data.
 
-import { $, $$, ago, esc, fmtDate, fmtDay } from '../lib/utils.js';
+import { $, $$, ago, esc, fmtDate, fmtDay, money } from '../lib/utils.js';
 import { getState, replaceState, save } from '../core/store.js';
 import { deleteCv } from '../core/files.js';
 import { currentUser } from '../services/auth.js';
 import { allJobs, deleteJob, isClosed, jobById, openJobs } from '../services/jobs.js';
 import { allApplications, statusOf } from '../services/applications.js';
-import { hasActiveSubscription } from '../services/subscription.js';
+import { hasActiveSubscription, planById } from '../services/subscription.js';
+import { allPayments, businessNumbers } from '../services/business.js';
+import { refundPayment, runBillingForAll } from '../services/billing.js';
+import { methodLabel } from '../services/payments.js';
+import { allTickets, closeTicket } from '../services/support.js';
+import { jumpDays, jumpTo, now as clockNow, offsetDays, resetClock } from '../core/clock.js';
 import { createSeedState } from '../data/seed-state.js';
 import { confirmInline, showError } from '../ui/forms.js';
 import { openJobEdit } from './sheets/job-edit.js';
@@ -73,8 +78,59 @@ function renderAdmin() {
       }</span></div></div>`;
     })
     .join('');
+  const b = businessNumbers();
+  const planMix = Object.entries(b.plans)
+    .map(([id, n]) => `${(planById(id) || { name: id }).name} ${n}`)
+    .join(' · ');
+  const payRows = allPayments()
+    .slice(0, 30)
+    .map(
+      (p) => `<div class="adm-row"><div><strong class="num">${money(p.amount)} · ${esc(p.name)}</strong><span class="small muted">${fmtDay(p.at)} · ${esc(
+        methodLabel(p.method) || 'Payment',
+      )} · ${esc(p.ref)}${p.kind === 'renewal' ? ' · renewal' : ''}</span></div>${
+        p.refundedAt
+          ? '<span class="state rejected">Refunded</span>'
+          : `<button class="btn sm" data-refund="${esc(p.ref)}" data-email="${esc(p.email)}">Refund</button>`
+      }</div>`,
+    )
+    .join('');
+  const tickets = allTickets();
+  const ticketRows = tickets.length
+    ? tickets
+        .map(
+          (t) => `<div class="adm-row"><div><strong>${esc(t.topic)} · ${esc(t.name)}</strong><span class="small muted">${esc(t.email)} · ${esc(
+            ago(t.at),
+          )} · ${esc(t.id)}</span><span class="small">${esc(t.message)}</span></div>${
+            t.status === 'open' ? `<button class="btn sm" data-close-ticket="${esc(t.id)}">Done</button>` : '<span class="muted small">Done</span>'
+          }</div>`,
+        )
+        .join('')
+    : '<div class="adm-row"><span class="muted">No messages yet.</span></div>';
+  const nextDue = Object.values(s.users)
+    .map((u) => u.subscription)
+    .filter((x) => x && ['active', 'past_due'].includes(x.status))
+    .map((x) => (x.status === 'past_due' ? x.nextRetry : x.renewsAt))
+    .sort((a, b2) => a - b2)[0];
   return `
     <div class="hello"><h1>Admin</h1><p class="muted">Manage the jobs on this device and see every application.</p></div>
+    <section class="section"><h2>Business</h2>
+      <div class="stats"><div class="stat"><b class="num">${b.subscribers}</b><span>Paying subscribers</span></div><div class="stat"><b class="num">${money(
+        b.mrr,
+      )}</b><span>Monthly recurring income</span></div><div class="stat"><b class="num">${money(b.thisMonth)}</b><span>Income this month</span></div><div class="stat"><b class="num">${money(
+        b.total,
+      )}</b><span>Income to date</span></div></div>
+      <p class="small muted">${planMix || 'No active plans.'} · ${b.pastDue} payment failed · ${b.cancelled} cancelled · ${b.ended} ended${
+        b.refunded ? ` · ${money(b.refunded)} refunded` : ''
+      }. Test payments: no money moved.</p>
+    </section>
+    <section class="section"><h2>Test clock</h2><div class="card">
+      <span>The app thinks today is <strong>${fmtDay(clockNow())}</strong>${offsetDays() ? ` (${offsetDays()} days ahead)` : ' (real date)'}. Move it forward to see renewals, failed payments and reminders happen.</span>
+      <div class="list-actions"><button class="btn sm" data-jump="1">+1 day</button><button class="btn sm" data-jump="7">+1 week</button><button class="btn sm" data-jump="30">+30 days</button>${
+        nextDue ? `<button class="btn sm primary" id="jumpDue">To next payment (${fmtDay(nextDue)})</button>` : ''
+      }${offsetDays() ? '<button class="btn sm" id="clockReset">Back to today</button>' : ''}</div>
+    </div></section>
+    <section class="section"><h2>Payments</h2><div class="list">${payRows || '<div class="adm-row"><span class="muted">No payments yet.</span></div>'}</div></section>
+    <section class="section"><h2>Messages from Help</h2><div class="list">${ticketRows}</div></section>
     <div class="stats"><div class="stat"><b class="num">${openJobs().length}</b><span>Open jobs</span></div><div class="stat"><b class="num">${
       apps.length
     }</b><span>Applications</span></div><div class="stat"><b class="num">${users.length}</b><span>Accounts</span></div><div class="stat"><b class="num">${subscribers}</b><span>Subscribers</span></div></div>
@@ -94,6 +150,52 @@ export const render = () => (unlocked ? renderAdmin() : renderPin());
 
 export function bind(root, ctx) {
   if (!unlocked) return bindPin(root, ctx);
+
+  const afterJump = () => {
+    const r = runBillingForAll();
+    ctx.toast(`Today is now ${fmtDay(clockNow())}. Renewed ${r.renewed}, failed ${r.failed}, ended ${r.ended}.`);
+    ctx.refresh();
+  };
+  $$('[data-jump]', root).forEach((b) =>
+    b.addEventListener('click', () => {
+      jumpDays(+b.dataset.jump);
+      afterJump();
+    }),
+  );
+  $('#jumpDue', root)?.addEventListener('click', () => {
+    const due = Object.values(getState().users)
+      .map((u) => u.subscription)
+      .filter((x) => x && ['active', 'past_due'].includes(x.status))
+      .map((x) => (x.status === 'past_due' ? x.nextRetry : x.renewsAt))
+      .sort((a, b) => a - b)[0];
+    jumpTo(due + 60 * 1000);
+    afterJump();
+  });
+  $('#clockReset', root)?.addEventListener('click', () => {
+    resetClock();
+    ctx.toast('The test clock is back to today.');
+    ctx.refresh();
+  });
+  $$('[data-refund]', root).forEach((b) =>
+    b.addEventListener('click', () => {
+      confirmInline(b.closest('.adm-row'), {
+        message: `Refund ${b.dataset.refund}? If it paid for the current period, that plan ends now.`,
+        yes: 'Refund',
+        onYes: () => {
+          refundPayment(b.dataset.email, b.dataset.refund);
+          ctx.toast('Refunded. The customer was emailed.');
+          ctx.refresh();
+        },
+        onNo: ctx.refresh,
+      });
+    }),
+  );
+  $$('[data-close-ticket]', root).forEach((b) =>
+    b.addEventListener('click', () => {
+      closeTicket(b.dataset.closeTicket);
+      ctx.refresh();
+    }),
+  );
 
   $('#addJob', root).addEventListener('click', () => openJobEdit(null, ctx));
   $$('[data-edit]', root).forEach((b) => b.addEventListener('click', () => openJobEdit(b.dataset.edit, ctx)));

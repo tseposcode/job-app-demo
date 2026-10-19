@@ -20,11 +20,11 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 <!-- ?v= makes phones fetch fresh files after an update. Bump it (and package.json) on every release. -->
-<link rel="stylesheet" href="css/tokens.css?v=0.9.0">
-<link rel="stylesheet" href="css/base.css?v=0.9.0">
-<link rel="stylesheet" href="css/components.css?v=0.9.0">
-<link rel="stylesheet" href="css/views.css?v=0.9.0">
-<script type="module" src="js/main.js?v=0.9.0"></script>
+<link rel="stylesheet" href="css/tokens.css?v=0.10.0">
+<link rel="stylesheet" href="css/base.css?v=0.10.0">
+<link rel="stylesheet" href="css/components.css?v=0.10.0">
+<link rel="stylesheet" href="css/views.css?v=0.10.0">
+<script type="module" src="js/main.js?v=0.10.0"></script>
 </head>
 <body>
 <div class="app">
@@ -38,7 +38,7 @@
         <rect x="12" y="32" width="40" height="3" class="logo-tile"/>
         <rect x="28" y="29" width="8" height="9" rx="2" class="logo-case logo-clasp" stroke-width="2.5"/>
       </svg>Job Auto</span>
-    <span class="pill" id="topPill">Test version</span>
+    <span class="top-r"><button type="button" class="bell" id="bell" aria-label="Inbox" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg><span class="bell-n" id="bellN" hidden></span></button><span class="pill" id="topPill">Test version</span></span>
   </header>
   <div id="view" class="view" aria-live="polite"></div>
   <p class="sample">Test version. Jobs and companies are made up. Everything you enter stays on this device.</p>

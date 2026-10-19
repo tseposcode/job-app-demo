@@ -1,10 +1,22 @@
 // seed-jobs.js
 // The 20 made-up sample jobs every device starts with. The admin page can add more.
 // Fields: id, title, company, type, field, city, province, mode, qual, pay (rand per month),
-// posted and closes (YYYY-MM-DD), skills, desc.
+// posted and closes (YYYY-MM-DD), skills, desc, apply ({ method, to | url }), source.
+
+// How each sample job takes applications (see APPLY_METHODS in config.js). The rest are in-app.
+const BY_EMAIL = ['j01', 'j02', 'j04', 'j06', 'j09', 'j10', 'j12', 'j17', 'j19'];
+const ON_SITE = ['j05', 'j08', 'j14', 'j18'];
+const domain = (company) => `${company.toLowerCase().replace(/[^a-z]+/g, '-').replace(/^-|-$/g, '')}.example`;
+
+function applyFor(id, company) {
+  if (BY_EMAIL.includes(id)) return { method: 'email', to: `careers@${domain(company)}` };
+  if (ON_SITE.includes(id)) return { method: 'site', url: `https://${domain(company)}/careers` };
+  return { method: 'in_app' };
+}
 
 function job(id, title, company, type, field, city, province, mode, qual, pay, posted, closes, skills, desc) {
-  return { id, title, company, type, field, city, province, mode, qual, pay, posted, closes, skills, desc };
+  const apply = applyFor(id, company);
+  return { id, title, company, type, field, city, province, mode, qual, pay, posted, closes, skills, desc, apply, source: 'Sample jobs' };
 }
 
 export const SEED_JOBS = [
