@@ -211,6 +211,14 @@ for (const [file, checks] of [
   });
 }
 
+test('briefcase logo in the header and the company on Profile', async ({ page }) => {
+  await loginAsTest(page);
+  await expect(page.locator('.wordmark svg.logo')).toBeVisible();
+  await expect(page.locator('.wordmark i')).toHaveCount(0); // the old checkmark is gone
+  await page.click('.tab[data-go=profile]');
+  await expect(page.locator('#madeBy')).toHaveText('Job Auto is a product of Gentle-TT Pty Ltd.');
+});
+
 test('cancel and keep the plan', async ({ page }) => {
   await loginAsTest(page);
   await page.click('.tab[data-go=profile]');

@@ -28,6 +28,9 @@ export const PROVINCES = [
 ];
 export const MODES = ['On-site', 'Hybrid', 'Remote'];
 
+// The company behind Job Auto, shown at the bottom of the Profile page.
+export const COMPANY = 'Gentle-TT Pty Ltd';
+
 // Demo-only test account and admin PIN. Never put real passwords here.
 export const TEST_EMAIL = 'thabang@test.com';
 export const TEST_PASS = 'jameson';
