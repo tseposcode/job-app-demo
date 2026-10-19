@@ -49,7 +49,7 @@ The last three samples are written the way real people write CVs, to show the re
 
 On Profile: cancel or keep the plan, turn marketing emails on or off, read the privacy notice, **download my data**, and **withdraw consent and delete the account**.
 
-**Placeholders to replace before launch:** plan prices (`js/config.js` → `PLANS`), the privacy contact and Information Officer (`PRIVACY_CONTACT`), and the privacy notice wording (`js/data/privacy-notice.js`, a draft that a lawyer must check).
+**Placeholders to replace before launch:** plan prices (`js/config.js` → `PLANS`), the company's address, the privacy contact and Information Officer (`PRIVACY_CONTACT`), and the privacy notice wording (`js/data/privacy-notice.js`, a draft that a lawyer must check).
 
 ## Where things are
 

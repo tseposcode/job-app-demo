@@ -2,6 +2,10 @@
 
 Notable changes a user or tester would notice. Newest first.
 
+## 0.6.1 (2026-10-19)
+
+- Privacy notice version 1.1: names Gentle-TT Pty Ltd as the company responsible for users' information (POPIA). Existing accounts are asked to agree again; the made-up test account accepts it by itself.
+
 ## 0.6.0 (2026-10-19)
 
 - New logo: a simple briefcase on a green tile, in place of the checkmark. Also used for the browser tab and the phone home-screen icon.
