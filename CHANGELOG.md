@@ -2,6 +2,10 @@
 
 Notable changes a user or tester would notice. Newest first.
 
+## 0.8.0 (2026-10-19)
+
+- Privacy notice version 1.2: a new "Payment and billing information" section says what we collect when someone buys a plan (card details through the payment provider, billing details) and what we keep (plan, dates, amount, payment reference, card type, last four digits and expiry). Existing accounts are asked to agree again; the test account accepts it by itself.
+
 ## 0.7.1 (2026-10-19)
 
 - Fixed: PDF CVs could not be read on iPhones (Safari, including iOS 26). They showed "We could not read this file (Error code: TypeError)". Word CVs were not affected.
