@@ -9,8 +9,37 @@
 
 let pdfjsPromise = null;
 
+// pdf.js loops over a ReadableStream with `for await` to collect the text.
+// Safari (iPhone, iOS 26 too) can't loop over a stream that way yet, so reading
+// failed there with a TypeError. This adds the missing piece only when it is missing.
+function addStreamLooping() {
+  const proto = globalThis.ReadableStream && ReadableStream.prototype;
+  if (!proto || proto[Symbol.asyncIterator]) return;
+  function values({ preventCancel = false } = {}) {
+    const reader = this.getReader();
+    return {
+      async next() {
+        const result = await reader.read();
+        if (result.done) reader.releaseLock();
+        return result;
+      },
+      async return(value) {
+        if (!preventCancel) await reader.cancel(value);
+        reader.releaseLock();
+        return { done: true, value };
+      },
+      [Symbol.asyncIterator]() {
+        return this;
+      },
+    };
+  }
+  if (!proto.values) proto.values = values;
+  proto[Symbol.asyncIterator] = proto.values;
+}
+
 function loadPdfJs() {
   if (!pdfjsPromise) {
+    addStreamLooping();
     pdfjsPromise = import('../vendor/pdfjs/pdf.min.mjs').then((pdfjs) => {
       pdfjs.GlobalWorkerOptions.workerSrc = new URL('../vendor/pdfjs/pdf.worker.min.mjs', import.meta.url).href;
       return pdfjs;
