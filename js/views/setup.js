@@ -63,8 +63,9 @@ async function useFile(root, ctx, file, demo) {
   $$('button', root).forEach((b) => (b.disabled = true));
   const u = currentUser();
   try {
-    await storeCv(u, file, { demo });
+    // Read before saving: see storeCv for why the order matters on iPhones.
     const result = await readCv(file);
+    await storeCv(u, file, { demo });
     applyCvDetails(u, result.profile, { replace: true });
     goStep(u, 'details', {
       found: result.found.filter((f) => f !== 'name' && f !== 'job preferences'),
