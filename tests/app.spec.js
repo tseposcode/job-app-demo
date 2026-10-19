@@ -189,6 +189,28 @@ test('a CV that says "ready to relocate" ticks the box', async ({ page }) => {
   await expect(page.locator('#pRelocate')).toBeChecked();
 });
 
+// Real-world style CVs: no "Looking for" section, so preferences are suggested.
+for (const [file, checks] of [
+  ['Nomsa_Dlamini_CV.pdf', { pCity: 'Pretoria', pProv: 'Gauteng', pQual: 'Degree', pPhone: '082 000 4567', pYear: '2025', warn: 'ID number' }],
+  ['Kabelo_Mahlangu_CV.pdf', { pCity: 'Polokwane', pProv: 'Limpopo', pQual: 'Degree', pPhone: '083 000 3579', pYear: '2025' }],
+  ['Zanele_Khumalo_CV.docx', { pCity: 'Umlazi', pProv: 'KwaZulu-Natal', pQual: 'Diploma', pPhone: '076 000 8642', pYear: '2024', warn: 'health' }],
+]) {
+  test(`reads a real-world style CV: ${file}`, async ({ page }) => {
+    await signUp(page, 'Test', 'Person', `${file.slice(0, 5).toLowerCase()}@test.com`);
+    await agreeToPrivacy(page);
+    await page.setInputFiles('#setupCv', `samples/cvs/${file}`);
+    await expect(page.locator('h1')).toHaveText('Check your details');
+    const { warn, ...fields } = checks;
+    for (const [id, value] of Object.entries(fields)) await expect(page.locator(`#${id}`)).toHaveValue(value);
+    if (warn) await expect(page.locator('#view')).toContainText(new RegExp(`Your CV shows.*${warn}`));
+    await page.click('#dForm button[type=submit]');
+    await expect(page.locator('#view')).toContainText('Suggested from your CV');
+    expect(await page.locator('input[name=pf]:checked').count()).toBeGreaterThan(0);
+    await page.click('#prefForm button[type=submit]');
+    await expect(page.locator('h1')).toHaveText('Choose your plan');
+  });
+}
+
 test('cancel and keep the plan', async ({ page }) => {
   await loginAsTest(page);
   await page.click('.tab[data-go=profile]');
