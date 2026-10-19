@@ -581,6 +581,26 @@ test('admin: refund ends the plan and emails the customer', async ({ page }) => 
   await expect(page.locator('h1')).toHaveText('Your plan has ended');
 });
 
+for (const file of ['Sipho_Ndlovu_CV.pdf', 'Zanele_Khumalo_CV.docx']) {
+  test(`Profile: View shows the uploaded CV in the app (${file})`, async ({ page }) => {
+    await signUp(page, 'View', 'Tester', `view${file.slice(0, 3)}@test.com`);
+    await agreeToPrivacy(page);
+    await page.setInputFiles('#setupCv', `samples/cvs/${file}`);
+    await page.click('#dForm button[type=submit]');
+    await page.click('#prefForm button[type=submit]');
+    await page.click('#toPay');
+    await page.click('#ccTest');
+    await page.click('#coPay');
+    await page.click('#coDone');
+    await page.click('.tab[data-go=profile]');
+    await page.click('#cvView');
+    await expect(page.locator('.sheet')).toContainText(file);
+    if (file.endsWith('.pdf')) await expect(page.locator('.cv-page').first()).toBeVisible();
+    else await expect(page.locator('.cv-view')).toContainText('Umlazi');
+    await expect(page.locator('#cvDownload')).toHaveAttribute('download', file);
+  });
+}
+
 test('cancel and keep the plan', async ({ page }) => {
   await loginAsTest(page);
   await page.click('.tab[data-go=profile]');

@@ -13,6 +13,7 @@ import { checkCvFile, storeCv } from '../services/cv.js';
 import { confirmInline } from '../ui/forms.js';
 import { openProfileEdit } from './sheets/profile-edit.js';
 import { bindAccountSections, renderAccountSections } from './profile-account.js';
+import { openCvViewer } from './sheets/cv-viewer.js';
 
 const row = (label, value) =>
   `<div class="row"><dt>${esc(label)}</dt><dd>${value ? esc(value) : '<span class="muted">Not added</span>'}</dd></div>`;
@@ -96,12 +97,7 @@ export function bind(root, ctx) {
   $('#cvView', root)?.addEventListener('click', async () => {
     const file = await getCv(u.email);
     if (!file) return ctx.toast('The CV file is not on this device any more. Upload it again.');
-    const url = URL.createObjectURL(file);
-    const a = Object.assign(document.createElement('a'), { href: url, target: '_blank', rel: 'noopener' });
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 60000);
+    openCvViewer(file.name ? file : new File([file], u.cv.name));
   });
 
   $('#cvRemove', root)?.addEventListener('click', (e) => {
