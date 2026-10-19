@@ -37,7 +37,7 @@ function addStreamLooping() {
   proto[Symbol.asyncIterator] = proto.values;
 }
 
-function loadPdfJs() {
+export function loadPdfJs() {
   if (!pdfjsPromise) {
     addStreamLooping();
     pdfjsPromise = import('../vendor/pdfjs/pdf.min.mjs').then((pdfjs) => {

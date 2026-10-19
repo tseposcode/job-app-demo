@@ -2,6 +2,10 @@
 
 Notable changes a user or tester would notice. Newest first.
 
+## 0.10.1 (2026-10-19)
+
+- Fixed: "View" on your CV did nothing on iPhones. The CV now opens inside the app: PDF pages are shown as they look, Word CVs as text, with a Download button.
+
 ## 0.10.0 (2026-10-19)
 
 Launch-ready test version: everything works end to end, and going live means connecting real services (see docs/LAUNCH.md).
