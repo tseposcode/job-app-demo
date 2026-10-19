@@ -2,6 +2,15 @@
 
 Notable changes a user or tester would notice. Newest first.
 
+## 0.5.0 (2026-10-18)
+
+- The CV reader now handles real-world CVs, not just the sample layout: any heading style, labelled personal details, tables, bullet lists and two-column (Canva-style) PDFs.
+- Word (.docx) CVs are read too. Old .doc files and scanned CVs get a clear message.
+- When a CV doesn't say what jobs the person wants, preferences are suggested from their studies, skills and town, and the screen says so.
+- Recognises South African towns and townships, province short forms (KZN, GP), qualifications (BCom, National Diploma, NSC...) and skips qualifications still in progress.
+- Warns when a CV shows an ID number, race, religion, health or criminal record details. These are never saved.
+- Three new made-up sample CVs in real-world styles, including a Word file.
+
 ## 0.4.0 (2026-10-18)
 
 - "Willing to relocate": a switch on Profile and a tick box in preferences. When on, auto-apply also sends to good jobs outside your provinces (they score a little lower than jobs in your provinces).

@@ -36,8 +36,11 @@ Code only calls **downwards** in this list. A page may use a service; a service 
 | Search, filters or sorting on the Jobs page | `js/views/jobs.js` |
 | Applied page list or filter chips | `js/views/applied.js` |
 | CV upload or photo upload on Profile | `js/views/profile.js` → `setupProfileUploads()`, `js/services/cv.js`, `js/core/files.js` |
-| CV details read wrongly (name, skills, education...) | `js/services/cv-reader.js` → `parseCv()` |
-| A PDF CV can't be read at all | `js/lib/pdf-text.js`, then `js/services/cv.js` → `readCv()` |
+| CV details read wrongly (phone, town, qualification, skills...) | `js/services/cv-reader.js` → `parseCv()` and the `read...()` function for that detail |
+| The reader doesn't know a town, skill, or field word | `js/data/cv-words.js` (just add it to the list) |
+| A PDF CV comes out jumbled (two columns mixed up) | `js/lib/pdf-text.js` → `columnEdge()` |
+| A Word CV can't be read | `js/lib/docx-text.js` |
+| A CV can't be read at all, or the message shown | `js/services/cv.js` → `readCv()` |
 | Sign-up steps: CV, details, preferences | `js/views/setup.js` |
 | Privacy step, consent boxes | `js/views/consent.js` (page), `js/services/account.js` (recording consent) |
 | Privacy notice wording | `js/data/privacy-notice.js` (then bump `PRIVACY_VERSION` in `js/config.js`) |

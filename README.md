@@ -19,7 +19,7 @@ The app is split into modules, so it must be opened through a small local web se
 
 1. **Account:** "Create an account" on the log-in page.
 2. **Privacy:** the POPIA notice and consent boxes. Nothing is pre-ticked; marketing emails are a separate, optional box. "I don't agree" deletes the new account.
-3. **CV:** upload a PDF, or tap one of the three **sample CVs** (made-up people in `samples/cvs/`). The app reads the PDF in the browser.
+3. **CV:** upload a PDF or Word (.docx) CV, or tap one of the six **sample CVs** (made-up people in `samples/cvs/`). The app reads the file in the browser.
 4. **Details:** filled in from the CV, for the person to check.
 5. **Preferences:** job types, fields, places and pay (also from the CV), and Automatic or One-tap applying.
 6. **Plan:** the paywall. It shows how many jobs already match, then a **test checkout** (no card details, no money).
@@ -31,6 +31,21 @@ After paying, auto-apply sends the CV to every strong match and the Applied tab 
 | Lerato Mokoena | Computer Science, Gauteng or remote | 4 (data and software) |
 | Sipho Ndlovu | Logistics diploma, KZN, Gauteng, Eastern Cape; his CV says he will relocate, so that box is ticked | 3 (supply chain) |
 | Aisha Petersen | BCom Accounting, Western Cape, Gauteng, KZN or remote | 3 (finance and admin), plus 2 more if she taps "Include them" (willing to relocate) |
+
+The last three samples are written the way real people write CVs, to show the reader is not tied to one template:
+
+| Sample CV | Style | What it shows |
+|---|---|---|
+| Nomsa Dlamini (PDF) | Classic one-column, "CURRICULUM VITAE" title, personal details with labels | Reads labelled details; warns about the ID number line; picks up "willing to relocate" |
+| Kabelo Mahlangu (PDF) | Two columns with a shaded sidebar, like a Canva template | Reads each column separately |
+| Zanele Khumalo (Word .docx) | Personal details table, capital headings, bullet lists | Reads Word files; skips a diploma that is still in progress; warns about the health line |
+
+### What the CV reader can and can't read
+
+- **Reads:** PDF and Word (.docx) CVs with selectable text; headings in any style; labelled details (`Cell no:`, `Address:`); tables; bullet lists; two-column layouts; South African towns, provinces, qualifications and phone formats.
+- **Can't read yet:** scanned or photographed CVs (pictures of text) and old Word `.doc` files. The person is asked to fill in their details instead.
+- **Job preferences:** taken from the CV if it says what the person wants; otherwise suggested from what they studied, their skills and where they live, and the screen says they were suggested.
+- It never saves ID numbers, race, religion, health or criminal record details, and it warns the person when their CV shows them.
 
 On Profile: cancel or keep the plan, turn marketing emails on or off, read the privacy notice, **download my data**, and **withdraw consent and delete the account**.
 
@@ -49,7 +64,7 @@ js/views/             one file per page, plus slide-up sheets
 js/ui/                toast, sheet and form helpers
 js/data/              sample jobs, the test account, the privacy notice text
 js/vendor/pdfjs/      pdf.js (Mozilla, Apache 2.0) for reading PDF CVs in the browser
-samples/              the three made-up CVs and the script that makes them
+samples/              the six made-up CVs and the two scripts that make them
 tests/                automatic checks (Playwright)
 docs/ARCHITECTURE.md  map of the code and "where do I fix X?"
 ```
