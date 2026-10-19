@@ -5,9 +5,12 @@
 import { save } from '../core/store.js';
 import { putCv } from '../core/files.js';
 import { pdfToText } from '../lib/pdf-text.js';
+import { docxToText } from '../lib/docx-text.js';
 import { parseCv } from './cv-reader.js';
 
 export const MAX_CV_BYTES = 5 * 1024 * 1024;
+export const CV_ACCEPT =
+  '.pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document';
 
 // Returns an error message, or '' if the file is fine.
 export function checkCvFile(file) {
@@ -23,27 +26,36 @@ export async function storeCv(u, file, { demo = false } = {}) {
   save();
 }
 
-// Reads a PDF CV. Returns { profile, found, hasIdNumber, note }.
-// Word files and scanned PDFs can't be read in the browser, so they return a note instead.
+// Reads a PDF or Word (.docx) CV.
+// Returns { profile, found, suggested, sensitive, hasIdNumber, note }.
+// Old .doc files and scanned PDFs can't be read in the browser, so they return a note instead.
 export async function readCv(file) {
-  const empty = { profile: {}, found: [], hasIdNumber: false };
-  if (!/\.pdf$/i.test(file.name)) {
-    return { ...empty, note: 'We can read details from PDF CVs. For Word files, fill in your details below.' };
+  const empty = { profile: {}, found: [], suggested: [], sensitive: [], hasIdNumber: false };
+  const name = file.name.toLowerCase();
+  if (name.endsWith('.doc')) {
+    return { ...empty, note: 'This is an older Word file (.doc), which we cannot read. Save it as PDF or .docx and upload again, or fill in your details below.' };
   }
   try {
-    const text = await pdfToText(file);
+    const text = name.endsWith('.docx') ? await docxToText(file) : await pdfToText(file);
     if (text.replace(/\s/g, '').length < 40) {
-      return { ...empty, note: 'This PDF looks like a scanned image, so we could not read it. Fill in your details below.' };
+      return { ...empty, note: 'This CV looks like a scanned picture, so we could not read the words. Fill in your details below.' };
     }
     return { ...parseCv(text), note: '' };
   } catch {
-    return { ...empty, note: 'We could not read this PDF. Fill in your details below.' };
+    return { ...empty, note: 'We could not read this file. Fill in your details below, or try saving your CV as a PDF.' };
   }
 }
 
+// Fields that come from a CV. When someone swaps CVs during sign-up, these are cleared first.
+const CV_FIELDS = { phone: '', city: '', province: '', qual: '', study: '', institution: '', gradYear: '', skills: [], experience: '' };
+
 // Copy what the CV reader found into the profile. The name on the account is kept.
-export function applyCvDetails(u, profile) {
+export function applyCvDetails(u, profile, { replace = false } = {}) {
   const { name: _name, surname: _surname, prefs, ...rest } = profile;
+  if (replace) {
+    Object.assign(u, structuredClone(CV_FIELDS));
+    u.prefs = { fields: [], types: [], provinces: [], remote: false, relocate: false, minPay: 0 };
+  }
   Object.assign(u, rest);
   if (prefs) u.prefs = { ...u.prefs, ...prefs };
   save();
