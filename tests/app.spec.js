@@ -157,7 +157,7 @@ test('full sign-up with a sample CV: consent, CV read, plan, auto-apply', async 
   expect(await page.locator('.jobs > li').count()).toBeGreaterThan(2);
   // The consent record is kept.
   await page.click('.tab[data-go=profile]');
-  await expect(page.locator('#view')).toContainText('to notice version 1.0');
+  await expect(page.locator('#view')).toContainText('to notice version 1.1');
 });
 
 test('uploading a PDF CV reads it', async ({ page }) => {
@@ -217,6 +217,39 @@ test('briefcase logo in the header and the company on Profile', async ({ page })
   await expect(page.locator('.wordmark i')).toHaveCount(0); // the old checkmark is gone
   await page.click('.tab[data-go=profile]');
   await expect(page.locator('#madeBy')).toHaveText('Job Auto is a product of Gentle-TT Pty Ltd.');
+});
+
+test('a changed privacy notice asks real accounts to agree again', async ({ page }) => {
+  await loginAsTest(page);
+  // Copy the test account as a "real" account that agreed to an older notice.
+  await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem('jobauto:v1'));
+    const u = structuredClone(s.users['thabang@test.com']);
+    u.email = 'older@test.com';
+    u.consent.version = '1.0';
+    s.users[u.email] = u;
+    s.session = u.email;
+    localStorage.setItem('jobauto:v1', JSON.stringify(s));
+  });
+  await page.reload();
+  await expect(page.locator('h1')).toHaveText('Our privacy notice has changed');
+  await expect(page.locator('#view')).toContainText('a product of Gentle-TT Pty Ltd');
+  await page.check('#cProcess');
+  await page.check('#cShare');
+  await page.check('#cAdult');
+  await page.click('#consentForm button[type=submit]');
+  await expect(page.locator('#q')).toBeVisible();
+});
+
+test('the test account accepts a new notice by itself', async ({ page }) => {
+  await loginAsTest(page);
+  await page.evaluate(() => {
+    const s = JSON.parse(localStorage.getItem('jobauto:v1'));
+    s.users['thabang@test.com'].consent.version = '1.0';
+    localStorage.setItem('jobauto:v1', JSON.stringify(s));
+  });
+  await page.reload();
+  await expect(page.locator('#view')).toContainText('Hi Thabang');
 });
 
 test('cancel and keep the plan', async ({ page }) => {
