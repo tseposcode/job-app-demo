@@ -246,6 +246,19 @@ for (const [i, file] of [
   });
 }
 
+test('Gentle-TT logo on Log in, Create an account and Profile', async ({ page }) => {
+  await page.goto('/index.html');
+  await expect(page.locator('.brandmark')).toBeVisible();
+  await page.goto('/index.html#signup');
+  await expect(page.locator('.brandmark')).toBeVisible();
+  await loginAsTest(page);
+  await page.goto('/index.html#profile');
+  await expect(page.locator('.madeby .brandmark')).toBeVisible();
+  // The logo image itself loads.
+  const res = await page.request.get('/img/gentle-tt.png');
+  expect(res.ok()).toBe(true);
+});
+
 test('briefcase logo in the header and the company on Profile', async ({ page }) => {
   await loginAsTest(page);
   await expect(page.locator('.wordmark svg.logo')).toBeVisible();

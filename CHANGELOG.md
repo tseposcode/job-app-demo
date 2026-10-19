@@ -2,6 +2,10 @@
 
 Notable changes a user or tester would notice. Newest first.
 
+## 0.7.0 (2026-10-19)
+
+- Gentle-TT branding: the Gentle TT logo (flower, hands and name) now sits at the very bottom of Log in, Create an account and Profile, under the test-version note, with "Job Auto is a product of Gentle-TT (Pty) Ltd." beneath it. It is drawn in the app's gold, so it suits light and dark mode.
+
 ## 0.6.3 (2026-10-19)
 
 - Fixed: on iPhones (Safari) CVs could not be read after the first one, for PDF and Word files alike. The app now reads a CV before saving it on the phone, and saves a copy rather than the picked file.
