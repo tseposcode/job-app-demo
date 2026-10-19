@@ -117,3 +117,7 @@ textarea{min-height:88px;resize:vertical}
 :focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 @media (prefers-reduced-motion: no-preference){.switch::after{transition:left .18s ease}.switch{transition:background-color .18s}}
 @media (max-width:360px){.grid2{grid-template-columns:1fr}.row{grid-template-columns:6.5rem minmax(0,1fr)}.stats{grid-template-columns:1fr 1fr}}
+/* Gentle-TT mark: the logo's shape filled with the app's gold, so it suits light and dark mode */
+.madeby{display:flex;flex-direction:column;align-items:center;gap:6px;margin-top:8px;text-align:center}
+.brandmark{display:block;width:100px;aspect-ratio:374/359;background:var(--gold);
+  -webkit-mask:url(../img/gentle-tt.png) center/contain no-repeat;mask:url(../img/gentle-tt.png) center/contain no-repeat}

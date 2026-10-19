@@ -4,6 +4,7 @@
 import { TEST_EMAIL, TEST_PASS } from '../config.js';
 import { $ } from '../lib/utils.js';
 import { login } from '../services/auth.js';
+import { madeBy } from '../ui/brand.js';
 import { showError } from '../ui/forms.js';
 
 export function render() {
@@ -16,7 +17,8 @@ export function render() {
       <button class="btn primary wide" type="submit">Log in</button>
       <button class="btn ghost wide" type="button" id="fillTest">Use the test account</button>
     </form>
-    <p class="small muted" style="text-align:center">New here? <button class="linkbtn" data-go="signup">Create an account</button> · <button class="linkbtn" data-go="admin">Admin</button></p>`;
+    <p class="small muted" style="text-align:center">New here? <button class="linkbtn" data-go="signup">Create an account</button> · <button class="linkbtn" data-go="admin">Admin</button></p>
+    ${madeBy()}`;
 }
 
 export function bind(root, ctx) {

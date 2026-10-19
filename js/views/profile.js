@@ -3,7 +3,6 @@
 // and (from profile-account.js) the plan and privacy sections.
 // setupProfileUploads() wires the hidden photo and CV file pickers once at start.
 
-import { COMPANY } from '../config.js';
 import { $, $$, ago, esc, initials, money } from '../lib/utils.js';
 import { ICON } from '../lib/icons.js';
 import { save } from '../core/store.js';
@@ -11,6 +10,7 @@ import { deleteCv, getCv } from '../core/files.js';
 import { currentUser, logout } from '../services/auth.js';
 import { completeness } from '../services/matching.js';
 import { checkCvFile, storeCv } from '../services/cv.js';
+import { madeBy } from '../ui/brand.js';
 import { confirmInline } from '../ui/forms.js';
 import { openProfileEdit } from './sheets/profile-edit.js';
 import { bindAccountSections, renderAccountSections } from './profile-account.js';
@@ -86,7 +86,7 @@ export function render() {
     </dl></section>
     ${renderAccountSections(u)}
     <div class="actions"><button class="btn" id="logout">Log out</button><button class="btn ghost" data-go="admin">Admin</button></div>
-    <p class="small muted center" id="madeBy">Job Auto is a product of ${esc(COMPANY)}.</p>`;
+    ${madeBy('madeBy')}`;
 }
 
 export function bind(root, ctx) {
