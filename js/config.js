@@ -28,6 +28,10 @@ export const PROVINCES = [
 ];
 export const MODES = ['On-site', 'Hybrid', 'Remote'];
 
+// Who emails come from, and the support contact. PLACEHOLDERS until the real domain exists.
+export const MAIL_FROM = 'Job Auto <hello@jobauto.example>';
+export const SUPPORT_EMAIL = 'support@jobauto.example';
+
 // The company behind Job Auto, shown at the bottom of the Profile page.
 export const COMPANY = 'Gentle-TT (Pty) Ltd';
 
@@ -36,6 +40,8 @@ export const TEST_EMAIL = 'thabang@test.com';
 export const TEST_PASS = 'jameson';
 export const DEFAULT_PIN = '2468';
 
+// Where data is kept: 'device' = this browser only (see core/backend.js).
+export const BACKEND = 'device';
 // Where the app keeps its data in the browser. Bump the version to start fresh.
 export const STORAGE_KEY = 'jobauto:v1';
 
@@ -55,6 +61,13 @@ export const PLANS = [
   { id: 'yearly', name: 'Yearly', price: 499, months: 12 },
 ];
 
+// Where job listings come from. 'sample' = the made-up jobs in data/seed-jobs.js.
+// Going live: add a source in services/job-source.js (a job feed read by our server) and set it here.
+export const JOB_SOURCE = 'sample';
+// How someone applies to a job: we email the CV for them, they apply on the company's
+// own site (auto-apply can't fill other sites' forms), or the employer receives it in Job Auto.
+export const APPLY_METHODS = { email: 'By email', site: "On the company's website", in_app: 'Through Job Auto' };
+
 // Payments. 'test' moves no money and accepts only test cards (see js/services/payments.js).
 // Going live: add the provider's adapter in payments.js and set its name here.
 export const PAYMENT_PROVIDER = 'test';
@@ -63,7 +76,7 @@ export const CARD_BRANDS = ['Visa', 'Mastercard', 'American Express', 'Diners Cl
 export const EFT_BANKS = ['Absa', 'African Bank', 'Capitec', 'Discovery Bank', 'FNB', 'Investec', 'Nedbank', 'Standard Bank', 'TymeBank'];
 
 // Privacy notice version. Change it when the notice changes and everyone is asked to agree again.
-export const PRIVACY_VERSION = '1.2'; // 1.1: names Gentle-TT (Pty) Ltd; 1.2: payment and billing information
+export const PRIVACY_VERSION = '1.3'; // 1.1: names Gentle-TT (Pty) Ltd; 1.2: payment and billing information; 1.3: cover notes, emails, help messages
 // PLACEHOLDER: the real Information Officer contact goes here before launch.
 export const PRIVACY_CONTACT = 'privacy@jobauto.example';
 

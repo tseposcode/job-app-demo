@@ -31,6 +31,8 @@ textarea{min-height:88px;resize:vertical}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:12px}
 .status{display:flex;align-items:center;gap:12px;background:var(--accent-soft);border-radius:14px;padding:12px 14px}
 .status.warn{background:var(--gold-soft)}
+.status.bad{background:var(--bad-soft)}
+.status.bad .dot{background:var(--bad);box-shadow:none}
 .status .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);flex:none;box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent)}
 .status.off .dot{background:var(--muted);box-shadow:none}
 .status.warn .dot{background:var(--gold);box-shadow:none}
@@ -155,3 +157,25 @@ textarea{min-height:88px;resize:vertical}
 .bill>div{display:flex;flex-direction:column;gap:2px}
 .bill+.bill{border-top:1px solid var(--line)}
 .pad{padding:0 14px}
+
+/* Header bell and Inbox */
+.top-r{display:flex;align-items:center;gap:8px}
+.bell{position:relative;width:38px;height:38px;border-radius:50%;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:flex;align-items:center;justify-content:center;cursor:pointer}
+.bell svg{width:19px;height:19px}
+.bell-n{position:absolute;top:-4px;right:-4px;min-width:18px;height:18px;padding:0 5px;border-radius:9px;background:var(--bad);color:#fff;font-size:.68rem;font-weight:700;display:flex;align-items:center;justify-content:center}
+.mails li+li{border-top:1px solid var(--line)}
+.mail{font:inherit;width:100%;text-align:left;background:none;border:0;color:var(--ink);padding:12px 14px;display:flex;flex-direction:column;gap:4px;cursor:pointer}
+.mail-h{display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.mail-h strong{font-weight:600}
+.mail.unread .mail-h strong{font-weight:800}
+.mail.unread .mail-h strong::before{content:"";display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--accent);margin-right:6px;vertical-align:middle}
+.mail-s{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.email p{margin:0}
+.email .btn{align-self:flex-start}
+.forgot{align-self:flex-end}
+
+/* Help: common questions */
+.faq details+details{border-top:1px solid var(--line)}
+.faq summary{padding:12px 14px;font-weight:600;cursor:pointer;list-style-position:inside}
+.faq details p{margin:0;padding:0 14px 14px;color:var(--muted)}
+.cv.attach{background:var(--surface);border:1px solid var(--line);border-radius:14px}

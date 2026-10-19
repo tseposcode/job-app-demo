@@ -4,16 +4,33 @@
 import { $, $$, esc, fmtDate, money } from '../../lib/utils.js';
 import { ICON } from '../../lib/icons.js';
 import { currentUser } from '../../services/auth.js';
-import { isClosed, jobById } from '../../services/jobs.js';
+import { APPLY_METHODS } from '../../config.js';
+import { applyOf, isClosed, jobById } from '../../services/jobs.js';
+import { isLiveSource } from '../../services/job-source.js';
 import { match, profileGaps } from '../../services/matching.js';
 import { apply, applicationFor, statusOf, withdraw } from '../../services/applications.js';
 import { closeSheet, openSheet } from '../../ui/sheet.js';
+import { openEmployerView } from './employer-view.js';
 import { confirmInline } from '../../ui/forms.js';
+
+function howToApply(job) {
+  const a = applyOf(job);
+  const text = {
+    email: `Job Auto emails your CV and a short cover note to the employer${a.to ? ` (${a.to})` : ''}. Their reply comes to your email and shows on Applied.`,
+    site: "This employer takes applications on its own website. Auto-apply can't fill in other websites, so apply there, then tap \"I applied there\" so we can keep track.",
+    in_app: 'The employer receives your CV and cover note in Job Auto, and their reply shows on Applied.',
+  }[a.method];
+  return `<section class="section"><h2>How to apply</h2><div class="card"><strong>${esc(APPLY_METHODS[a.method])}</strong><span class="small">${esc(
+    text,
+  )}</span><span class="small muted">Listing from: ${esc(job.source || 'Job Auto')}</span></div></section>`;
+}
 
 function actionArea(u, job, m, app) {
   if (app) {
     const st = statusOf(app);
-    return `<div class="actions" id="wdBox"><span class="state ${st.key}" style="align-self:center">${esc(
+    return `${
+      app.method === 'site' ? '' : '<button class="btn wide" id="empView">See what the employer received</button>'
+    }<div class="actions" id="wdBox"><span class="state ${st.key}" style="align-self:center">${esc(
       st.label,
     )}</span><button class="btn danger" id="wd">Withdraw application</button></div>`;
   }
@@ -28,6 +45,9 @@ function actionArea(u, job, m, app) {
     return `<p class="muted">This job needs at least a ${esc(
       job.qual.toLowerCase(),
     )}. Update your qualification on your profile if you have one.</p>`;
+  }
+  if (applyOf(job).method === 'site') {
+    return '<div class="actions"><button class="btn primary" id="siteOpen">Open their website</button><button class="btn" id="siteDone">I applied there</button></div>';
   }
   return '<button class="btn primary wide" id="sheetApply">Apply with my CV</button>';
 }
@@ -59,7 +79,19 @@ export function openJobDetail(jobId, ctx) {
     <section class="section"><h2>Skills</h2><div class="skills">${job.skills
       .map((sk) => `<span class="skill${m.have.includes(sk) ? '' : ' miss'}">${esc(sk)}</span>`)
       .join('')}</div></section>
+    ${howToApply(job)}
     ${actionArea(u, job, m, app)}`);
+
+  $('#empView', root)?.addEventListener('click', () => openEmployerView(app));
+  $('#siteOpen', root)?.addEventListener('click', () => {
+    if (!isLiveSource()) return ctx.toast('Test version: this company website is made up.');
+    window.open(applyOf(job).url, '_blank', 'noopener');
+  });
+  $('#siteDone', root)?.addEventListener('click', () => {
+    if (apply(job.id, 'site')) ctx.toast(`Saved: you applied to ${job.title} on their website.`);
+    closeSheet();
+    ctx.refresh();
+  });
 
   $('#sheetApply', root)?.addEventListener('click', () => {
     if (apply(job.id, 'one-tap')) ctx.toast(`Applied to ${job.title}.`);

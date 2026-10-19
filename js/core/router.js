@@ -25,12 +25,21 @@ import * as jobs from '../views/jobs.js';
 import * as applied from '../views/applied.js';
 import * as profile from '../views/profile.js';
 import * as admin from '../views/admin.js';
+import * as forgot from '../views/forgot.js';
+import * as reset from '../views/reset.js';
+import * as inbox from '../views/inbox.js';
+import * as help from '../views/help.js';
+import { unreadCount } from '../services/notify.js';
+import { runBilling } from '../services/billing.js';
+import { syncApplicationMail } from '../services/applications.js';
+import { now, offsetDays } from './clock.js';
+import { fmtDay } from '../lib/utils.js';
 
-const PAGES = { login, signup, consent, setup, subscribe, jobs, applied, profile, admin };
-const PUBLIC_PAGES = ['login', 'signup', 'admin']; // reachable without logging in
+const PAGES = { login, signup, consent, setup, subscribe, jobs, applied, profile, admin, forgot, reset, inbox, help };
+const PUBLIC_PAGES = ['login', 'signup', 'admin', 'forgot', 'reset', 'help']; // reachable without logging in
 const BRAND_PAGES = ['login', 'signup', 'profile']; // Gentle-TT logo at the very bottom
 const SIGNUP_PAGES = ['login', 'signup', 'consent', 'setup', 'subscribe']; // done once you are in
-const TAB_PAGES = ['jobs', 'applied', 'profile'];
+const TAB_PAGES = ['jobs', 'applied', 'profile', 'inbox'];
 
 let current = 'jobs';
 
@@ -67,13 +76,22 @@ export const isLivePage = () => TAB_PAGES.includes(current);
 function resolvePage(user) {
   if (!PAGES[current]) current = 'jobs';
   if (!user) return PUBLIC_PAGES.includes(current) ? current : 'login';
-  if (current === 'admin') return current;
+  if (['admin', 'reset', 'help'].includes(current)) return current;
   const step = pendingStep(user);
   if (step) return step;
   return SIGNUP_PAGES.includes(current) ? 'jobs' : current;
 }
 
+// Plans renew or end, and employer replies are emailed, as time passes.
+export function keepUpToDate() {
+  const u = currentUser();
+  if (!u) return;
+  runBilling(u);
+  syncApplicationMail(u);
+}
+
 export function refresh() {
+  keepUpToDate();
   const user = currentUser();
   current = resolvePage(user);
   if (location.hash !== `#${current}`) {
@@ -92,7 +110,16 @@ export function refresh() {
     else t.removeAttribute('aria-current');
   });
   $('#brandFoot').innerHTML = BRAND_PAGES.includes(current) ? madeBy(current === 'profile' ? 'madeBy' : '') : '';
-  $('#topPill').textContent = current === 'admin' ? 'Admin' : 'Test version';
+  $('#topPill').textContent = current === 'admin' ? 'Admin' : offsetDays() ? `Test · ${fmtDay(now())}` : 'Test version';
+  // The bell: emails for this person, once sign-up is done.
+  const bell = $('#bell');
+  bell.hidden = !user || !!pendingStep(user);
+  if (user) {
+    const n = unreadCount(user.email);
+    $('#bellN').hidden = !n;
+    $('#bellN').textContent = n;
+    bell.setAttribute('aria-label', n ? `Inbox, ${n} unread` : 'Inbox');
+  }
 
   if (user && current === 'applied') markApplicationsSeen();
   updateBadge();

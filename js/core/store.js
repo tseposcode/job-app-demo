@@ -1,26 +1,18 @@
 // store.js
-// The single place that holds the app's data and saves it in the browser.
+// The single place that holds the app's data. Saving goes through core/backend.js.
 // Every other file reads data through getState() and calls save() after a change.
 //
 // Shape of the data:
-//   { version, pin, session, jobs: [...], users: { email: user }, apps: [...] }
+//   { version, pin, session, jobs: [...], users: { email: user }, apps: [...],
+//     mail: { email: [...] }, resets: { token: {...} }, tickets: [...], clockOffset }
 
-import { STORAGE_KEY } from '../config.js';
+import { backend } from './backend.js';
 
 let state = null;
 
-function readFromBrowser() {
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null; // private window, blocked storage or broken data: start fresh
-  }
-}
-
 // Load saved data, or create it with createSeed() the first time.
 export function initStore(createSeed) {
-  state = readFromBrowser() || createSeed();
+  state = backend().load() || createSeed();
   save();
   return state;
 }
@@ -31,11 +23,7 @@ export function getState() {
 }
 
 export function save() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-  } catch {
-    // Storage full or blocked: the app keeps working for this visit only.
-  }
+  backend().save(state);
 }
 
 // Replace everything, for example when the admin resets the test data.

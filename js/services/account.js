@@ -11,6 +11,7 @@ import { deleteCv } from '../core/files.js';
 import { createSeedState } from '../data/seed-state.js';
 import { currentUser } from './auth.js';
 import { statusOf } from './applications.js';
+import { deleteMail, inbox } from './notify.js';
 
 function log(u, what) {
   u.consentLog = u.consentLog || [];
@@ -45,7 +46,7 @@ export function setMarketing(on) {
 export function exportMyData() {
   const u = currentUser();
   if (!u) return null;
-  const { pass: _pass, setup: _setup, ...profile } = u;
+  const { pass: _pass, setup: _setup, verify: _verify, ...profile } = u;
   const s = getState();
   const applications = s.apps
     .filter((a) => a.email === u.email)
@@ -64,6 +65,7 @@ export function exportMyData() {
     exportedAt: new Date().toISOString(),
     profile,
     applications,
+    emails: inbox(u.email).map(({ at, subject, lines }) => ({ sentAt: new Date(at).toISOString(), subject, text: lines.join('\n\n') })),
   };
 }
 
@@ -75,6 +77,7 @@ export function deleteAccount() {
   const s = getState();
   const email = u.email;
   deleteCv(email);
+  deleteMail(email);
   s.apps = s.apps.filter((a) => a.email !== email);
   delete s.users[email];
   s.session = null;

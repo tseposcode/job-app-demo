@@ -116,6 +116,7 @@ export const TEST_CARDS = {
   '4000000000000002': 'declined',
   '4000000000009995': 'no_funds',
   '4000002760003184': 'approve', // asks the person to approve in their banking app (3-D Secure)
+  '4000000000000341': 'renew_fails', // pays today, but later renewals fail (to show failed payments)
 };
 export const TEST_CARD = { number: '4242 4242 4242 4242', expiry: '12 / 30', cvc: '123' };
 
@@ -146,8 +147,17 @@ const testProvider = {
     const result = TEST_CARDS[n];
     if (!result) return { ok: false, error: FAIL.not_test };
     if (result === 'approve') return { ok: false, approve: true, ref: reference(), amount, method: saved };
-    if (result !== 'ok') return { ok: false, error: FAIL[result] };
+    if (result !== 'ok' && result !== 'renew_fails') return { ok: false, error: FAIL[result] };
     return { ok: true, ref: reference(), amount, method: saved };
+  },
+  // Charging the saved payment method on a renewal date. No one is there to approve,
+  // so this answers straight away. An expired card fails.
+  chargeSaved(method, amount, at) {
+    if (method.type === 'card') {
+      if (cardExpiresAt(method.expiry) <= at) return { ok: false, error: 'The card has expired.' };
+      if (method.last4 === '0341' || method.last4 === '0002') return { ok: false, error: 'The bank declined the payment.' };
+    }
+    return { ok: true, ref: reference(), amount };
   },
   // Saving a new card on the plan, without charging it.
   async saveCard(card) {
@@ -165,3 +175,11 @@ const provider = () => PROVIDERS[PAYMENT_PROVIDER] || testProvider;
 export const isTestMode = () => !provider().live;
 export const pay = (args) => provider().pay(args);
 export const saveCard = (card) => provider().saveCard(card);
+export const chargeSaved = (method, amount, at) => provider().chargeSaved(method, amount, at);
+
+// "12 / 30" -> the first moment the card no longer works (1 Jan 2031).
+export function cardExpiresAt(expiry) {
+  const e = digits(expiry);
+  if (e.length !== 4) return Infinity;
+  return new Date(2000 + +e.slice(2, 4), +e.slice(0, 2), 1).getTime();
+}

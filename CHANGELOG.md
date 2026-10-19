@@ -2,6 +2,20 @@
 
 Notable changes a user or tester would notice. Newest first.
 
+## 0.10.0 (2026-10-19)
+
+Launch-ready test version: everything works end to end, and going live means connecting real services (see docs/LAUNCH.md).
+
+- Jobs: listings come through one job source. Each job says how you apply: by email, on the company's website, or through Job Auto. Auto-apply skips website-only jobs; "I applied there" keeps track of them.
+- What the employer receives: every application has a cover note written for that job. "See what the employer received" shows the email, cover note, profile summary and CV.
+- Inbox: a bell at the top shows the emails Job Auto sends: welcome, confirm email, receipts, applications sent, CV opened, interview invitations, plan reminders, failed payments, refunds.
+- Forgot password and reset link; confirm your email address.
+- Renewals like a real subscription: cards and wallets renew automatically; a failed payment is retried over 7 days and fixed by updating the card; card-expiry and renewal reminders; Instant EFT plans end unless paid again.
+- Admin: Business numbers (subscribers, monthly income, income this month and to date), all payments with Refund, messages from Help, and a test clock to jump ahead in time.
+- Help and contact page with common questions and a message form.
+- Draft Terms of Service and Cancellation and refund policy, linked from sign-up, checkout, Profile and Help.
+- Privacy notice version 1.3: adds cover notes, emails and help messages. Everyone is asked to agree again.
+
 ## 0.9.0 (2026-10-19)
 
 - Realistic checkout, laid out like big subscription apps: order summary with total due today and next payment date; express checkout with Apple Pay, Samsung Pay and Google Pay (the phone's own wallet first); card payment with Visa, Mastercard, American Express and Diners Club; Instant EFT with South African banks; a clear "you agree to be charged" line; and a receipt at the end.

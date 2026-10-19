@@ -5,6 +5,7 @@ import { $ } from '../lib/utils.js';
 import { signup } from '../services/auth.js';
 import { showError } from '../ui/forms.js';
 import { stepHeader } from '../ui/steps.js';
+import { openLegal } from './sheets/legal.js';
 
 export function render() {
   return `
@@ -17,12 +18,14 @@ export function render() {
       <label class="field"><span>Email</span><input type="email" id="suEmail" autocomplete="email" required></label>
       <label class="field"><span>Password (at least 6 characters)</span><input type="password" id="suPass" autocomplete="new-password" required></label>
       <p class="err" id="suErr" hidden></p>
+      <p class="small muted">By creating an account, you agree to our <button type="button" class="linkbtn" id="suTerms">Terms of Service</button>. Next, we explain how we use your information.</p>
       <button class="btn primary wide" type="submit">Create account</button>
     </form>
     <p class="small muted" style="text-align:center">Already have an account? <button class="linkbtn" data-go="login">Log in</button></p>`;
 }
 
 export function bind(root, ctx) {
+  $('#suTerms', root).addEventListener('click', () => openLegal('terms'));
   $('#signupForm', root).addEventListener('submit', (e) => {
     e.preventDefault();
     const result = signup({

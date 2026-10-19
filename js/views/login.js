@@ -13,10 +13,11 @@ export function render() {
       <label class="field"><span>Email</span><input type="email" id="liEmail" autocomplete="username" required></label>
       <label class="field"><span>Password</span><input type="password" id="liPass" autocomplete="current-password" required></label>
       <p class="err" id="liErr" hidden></p>
+      <button type="button" class="linkbtn small forgot" data-go="forgot">Forgot password?</button>
       <button class="btn primary wide" type="submit">Log in</button>
       <button class="btn ghost wide" type="button" id="fillTest">Use the test account</button>
     </form>
-    <p class="small muted" style="text-align:center">New here? <button class="linkbtn" data-go="signup">Create an account</button> · <button class="linkbtn" data-go="admin">Admin</button></p>`;
+    <p class="small muted" style="text-align:center">New here? <button class="linkbtn" data-go="signup">Create an account</button> · <button class="linkbtn" data-go="help">Help</button> · <button class="linkbtn" data-go="admin">Admin</button></p>`;
 }
 
 export function bind(root, ctx) {
