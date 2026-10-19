@@ -1,12 +1,12 @@
 // subscription.js
 // The paywall rules: who has an active plan, subscribing, cancelling, resuming.
-// Test version: no money moves. A live version gets the "paid" signal from a
-// payment provider's server, never from the browser.
+// Payment itself happens in payments.js. A live version gets the "paid" signal
+// from the payment provider's server, never from the browser.
 
 import { PLANS } from '../config.js';
 import { save } from '../core/store.js';
-import { uid } from '../lib/utils.js';
 import { currentUser } from './auth.js';
+import { isTestMode } from './payments.js';
 
 export const planById = (id) => PLANS.find((p) => p.id === id) || null;
 
@@ -41,23 +41,36 @@ export function hasActiveSubscription(u = currentUser()) {
   return sub.status === 'cancelled' && Date.now() < sub.renewsAt;
 }
 
-export function subscribe(planId) {
+// payment = what pay() in payments.js returned: { ref, amount, method }.
+// Instant EFT pays once, so that plan does not renew by itself.
+export function subscribe(planId, payment) {
   const u = currentUser();
   const plan = planById(planId);
-  if (!u || !plan) return null;
+  if (!u || !plan || !payment) return null;
   const now = Date.now();
-  const ref = `TEST-${uid().toUpperCase()}`;
   u.subscription = {
     plan: plan.id,
     price: plan.price,
     status: 'active',
     startedAt: now,
     renewsAt: addMonths(now, plan.months),
-    ref,
-    payments: [{ at: now, amount: plan.price, ref, test: true }],
+    autoRenew: payment.method.type !== 'eft',
+    method: payment.method,
+    ref: payment.ref,
+    test: isTestMode(),
+    payments: [{ at: now, amount: payment.amount, ref: payment.ref, method: payment.method, plan: plan.id, test: isTestMode() }],
   };
   save();
   return u.subscription;
+}
+
+// A new card for the next payments. Nothing is charged now.
+export function setPaymentMethod(method) {
+  const u = currentUser();
+  if (!u || !u.subscription) return;
+  u.subscription.method = method;
+  u.subscription.autoRenew = method.type !== 'eft';
+  save();
 }
 
 // Cancelling keeps access until the end of the period already paid for.

@@ -55,6 +55,13 @@ export const PLANS = [
   { id: 'yearly', name: 'Yearly', price: 499, months: 12 },
 ];
 
+// Payments. 'test' moves no money and accepts only test cards (see js/services/payments.js).
+// Going live: add the provider's adapter in payments.js and set its name here.
+export const PAYMENT_PROVIDER = 'test';
+export const CARD_BRANDS = ['Visa', 'Mastercard', 'American Express', 'Diners Club'];
+// Banks offered for Instant EFT (pay once by approving in your banking app).
+export const EFT_BANKS = ['Absa', 'African Bank', 'Capitec', 'Discovery Bank', 'FNB', 'Investec', 'Nedbank', 'Standard Bank', 'TymeBank'];
+
 // Privacy notice version. Change it when the notice changes and everyone is asked to agree again.
 export const PRIVACY_VERSION = '1.2'; // 1.1: names Gentle-TT (Pty) Ltd; 1.2: payment and billing information
 // PLACEHOLDER: the real Information Officer contact goes here before launch.

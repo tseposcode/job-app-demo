@@ -89,8 +89,13 @@ function testAccountSignup(now) {
       status: 'active',
       startedAt: started,
       renewsAt: renews.getTime(),
+      autoRenew: true,
+      method: { type: 'card', brand: 'Visa', last4: '4242', expiry: '12 / 30' },
       ref: 'TEST-0001',
-      payments: [{ at: started, amount: plan.price, ref: 'TEST-0001', test: true }],
+      test: true,
+      payments: [
+        { at: started, amount: plan.price, ref: 'TEST-0001', method: { type: 'card', brand: 'Visa', last4: '4242', expiry: '12 / 30' }, plan: plan.id, test: true },
+      ],
     },
   };
 }

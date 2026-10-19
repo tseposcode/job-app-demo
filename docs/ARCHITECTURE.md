@@ -47,6 +47,9 @@ Code only calls **downwards** in this list. A page may use a service; a service 
 | Privacy step, consent boxes | `js/views/consent.js` (page), `js/services/account.js` (recording consent) |
 | Privacy notice wording | `js/data/privacy-notice.js` (then bump `PRIVACY_VERSION` in `js/config.js`) |
 | Plan page or checkout | `js/views/subscribe.js` (page), `js/services/subscription.js` (rules) |
+| Checkout screens: wallets, card form, Instant EFT, receipt, change card | `js/views/sheets/checkout.js` |
+| Taking payment, test cards, card checks, going live with a payment provider | `js/services/payments.js` (provider adapters), `js/config.js` → `PAYMENT_PROVIDER` |
+| Payment method and Billing history on Profile | `js/views/profile-account.js` |
 | Plan prices | `js/config.js` → `PLANS` |
 | Someone is sent to the wrong sign-up step | `js/services/access.js` → `pendingStep()`, used by `js/core/router.js` |
 | Plan and Privacy sections on Profile; download my data; delete account | `js/views/profile-account.js`, `js/services/account.js` |

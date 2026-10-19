@@ -1,10 +1,12 @@
 // profile-account.js
-// The "Plan" and "Privacy" sections at the bottom of the Profile page:
+// The "Plan", "Billing history" and "Privacy" sections at the bottom of the Profile page:
 // cancel or keep the plan, marketing emails on or off, read the privacy notice,
 // download my data, withdraw consent and delete the account (POPIA rights).
 
 import { $, esc, fmtDay, money } from '../lib/utils.js';
-import { cancelSubscription, perText, planById, resumeSubscription } from '../services/subscription.js';
+import { cancelSubscription, perText, planById, resumeSubscription, setPaymentMethod } from '../services/subscription.js';
+import { methodLabel } from '../services/payments.js';
+import { openChangeCard } from './sheets/checkout.js';
 import { deleteAccount, exportMyData, setMarketing } from '../services/account.js';
 import { confirmInline } from '../ui/forms.js';
 import { openPrivacyNotice } from './sheets/privacy-notice.js';
@@ -17,16 +19,33 @@ function planSection(u) {
   const plan = planById(sub.plan);
   const per = plan ? perText(plan) : 'per month';
   const active = sub.status === 'active';
+  const renewText = !active ? 'Ends' : sub.autoRenew === false ? 'Plan ends' : 'Next payment';
+  const method = sub.method
+    ? `<div class="row"><dt>Payment method</dt><dd><span>${esc(methodLabel(sub.method))}${
+        sub.method.expiry ? `<span class="muted small"> · expires ${esc(sub.method.expiry)}</span>` : ''
+      }</span> <button class="linkbtn small" id="chCard">${sub.method.type === 'card' ? 'Change' : 'Use a card'}</button></dd></div>`
+    : '';
+  const history = (sub.payments || [])
+    .slice()
+    .reverse()
+    .map(
+      (p) => `<li class="bill"><div><strong class="num">${money(p.amount)}</strong><span class="muted small">${fmtDay(p.at)} · ${esc(
+        methodLabel(p.method) || 'Payment',
+      )}</span></div><span class="muted small">${esc(p.ref)}${p.test ? ' · test' : ''}</span></li>`,
+    )
+    .join('');
   return `<section class="section"><h2>Plan</h2><dl class="list">
-    ${row('Plan', `${plan ? plan.name : sub.plan} · ${money(sub.price)} ${per}`)}
-    ${row(active ? 'Renews' : 'Ends', fmtDay(sub.renewsAt))}
-    ${row('Reference', `${sub.ref} (test, no money taken)`)}
+    ${row('Plan', `Job Auto Premium · ${plan ? plan.name : sub.plan} · ${money(sub.price)} ${per}`)}
+    ${row(renewText, fmtDay(sub.renewsAt))}
+    ${method}
+    ${active && sub.autoRenew === false ? '<p class="small muted pad">Instant EFT pays once. Add a card to renew by itself, or pay again before your plan ends.</p>' : ''}
     <div class="list-actions" id="subBox">${
       active
         ? '<button class="btn sm danger" id="subCancel">Cancel plan</button>'
         : '<button class="btn sm primary" id="subResume">Keep my plan</button>'
     }</div>
-  </dl></section>`;
+  </dl></section>
+  ${history ? `<section class="section"><h2>Billing history</h2><ul class="list bills">${history}</ul></section>` : ''}`;
 }
 
 function privacySection(u) {
@@ -55,6 +74,17 @@ export function bindAccountSections(root, ctx, u) {
       onNo: ctx.refresh,
     });
   });
+
+  $('#chCard', root)?.addEventListener('click', () =>
+    openChangeCard({
+      user: u,
+      onSaved: (method) => {
+        setPaymentMethod(method);
+        ctx.toast(`${methodLabel(method)} will be used for your next payments.`);
+        ctx.refresh();
+      },
+    }),
+  );
 
   $('#subResume', root)?.addEventListener('click', () => {
     resumeSubscription();
