@@ -21,8 +21,11 @@ a{color:var(--accent)}
 .view{display:flex;flex-direction:column;gap:18px}
 .topline{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .wordmark{font-family:var(--f-display);font-weight:800;font-size:1.05rem;letter-spacing:-.01em;display:flex;align-items:center;gap:8px}
-.wordmark i{display:inline-block;width:22px;height:22px;border-radius:7px;background:var(--accent);position:relative;flex:none}
-.wordmark i::after{content:"";position:absolute;left:6px;top:5px;width:8px;height:5px;border-left:2.5px solid var(--accent-ink);border-bottom:2.5px solid var(--accent-ink);transform:rotate(-45deg)}
+.logo{width:26px;height:26px;flex:none;display:block}
+.logo-tile{fill:var(--accent)}
+.logo-case{fill:var(--accent-ink)}
+.logo-handle{stroke:var(--accent-ink)}
+.logo-clasp{stroke:var(--accent)}
 .pill{font-size:.72rem;font-weight:600;padding:4px 9px;border-radius:999px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
 .hello{display:flex;flex-direction:column;gap:6px}
 

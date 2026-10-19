@@ -7,6 +7,9 @@
 <meta name="apple-mobile-web-app-title" content="Job Auto">
 <meta name="theme-color" content="#0F6B4F">
 <title>Job Auto</title>
+<link rel="icon" type="image/svg+xml" href="img/logo.svg">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
 <!--
   index.html is only the frame of the app: the header, the empty page area,
   the tab bar and a few shared containers. Pages are drawn by js/views/*.
@@ -17,16 +20,24 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&display=swap">
 <style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
 <!-- ?v= makes phones fetch fresh files after an update. Bump it (and package.json) on every release. -->
-<link rel="stylesheet" href="css/tokens.css?v=0.5.0">
-<link rel="stylesheet" href="css/base.css?v=0.5.0">
-<link rel="stylesheet" href="css/components.css?v=0.5.0">
-<link rel="stylesheet" href="css/views.css?v=0.5.0">
-<script type="module" src="js/main.js?v=0.5.0"></script>
+<link rel="stylesheet" href="css/tokens.css?v=0.6.0">
+<link rel="stylesheet" href="css/base.css?v=0.6.0">
+<link rel="stylesheet" href="css/components.css?v=0.6.0">
+<link rel="stylesheet" href="css/views.css?v=0.6.0">
+<script type="module" src="js/main.js?v=0.6.0"></script>
 </head>
 <body>
 <div class="app">
   <header class="topline">
-    <span class="wordmark"><i aria-hidden="true"></i>Job Auto</span>
+    <span class="wordmark">
+      <!-- The logo: a briefcase on a tile. Colours follow the theme (light and dark). Same drawing as img/logo.svg. -->
+      <svg class="logo" viewBox="0 0 64 64" aria-hidden="true">
+        <rect width="64" height="64" rx="15" class="logo-tile"/>
+        <path d="M25 21v-3.5a3.5 3.5 0 0 1 3.5-3.5h7a3.5 3.5 0 0 1 3.5 3.5V21" fill="none" class="logo-handle" stroke-width="4" stroke-linecap="round"/>
+        <rect x="12" y="21" width="40" height="29" rx="6" class="logo-case"/>
+        <rect x="12" y="32" width="40" height="3" class="logo-tile"/>
+        <rect x="28" y="29" width="8" height="9" rx="2" class="logo-case logo-clasp" stroke-width="2.5"/>
+      </svg>Job Auto</span>
     <span class="pill" id="topPill">Test version</span>
   </header>
   <div id="view" class="view" aria-live="polite"></div>
