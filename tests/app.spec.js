@@ -157,7 +157,7 @@ test('full sign-up with a sample CV: consent, CV read, plan, auto-apply', async 
   expect(await page.locator('.jobs > li').count()).toBeGreaterThan(2);
   // The consent record is kept.
   await page.click('.tab[data-go=profile]');
-  await expect(page.locator('#view')).toContainText('to notice version 1.1');
+  await expect(page.locator('#view')).toContainText('to notice version 1.2');
 });
 
 test('uploading a PDF CV reads it', async ({ page }) => {
