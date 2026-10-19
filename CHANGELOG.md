@@ -2,6 +2,11 @@
 
 Notable changes a user or tester would notice. Newest first.
 
+## 0.6.0 (2026-10-19)
+
+- New logo: a simple briefcase on a green tile, in place of the checkmark. Also used for the browser tab and the phone home-screen icon.
+- Profile now ends with "Job Auto is a product of Gentle-TT Pty Ltd."
+
 ## 0.5.0 (2026-10-18)
 
 - The CV reader now handles real-world CVs, not just the sample layout: any heading style, labelled personal details, tables, bullet lists and two-column (Canva-style) PDFs.

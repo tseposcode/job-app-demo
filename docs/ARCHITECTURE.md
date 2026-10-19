@@ -25,6 +25,8 @@ Code only calls **downwards** in this list. A page may use a service; a service 
 | Problem | Open this file |
 |---|---|
 | Colours or fonts | `css/tokens.css` |
+| The logo | `img/logo.svg` (tab icon), the `<svg class="logo">` in `index.html` (header), `img/*.png` (phone icons), `manifest.webmanifest` |
+| The company name on Profile | `js/config.js` → `COMPANY` |
 | A button, card, pill or the tab bar looks wrong everywhere | `css/components.css` |
 | Something only looks wrong on Profile or Admin | `css/views.css` |
 | Log in or sign up fails | `js/services/auth.js` (rules), `js/views/login.js` / `signup.js` (page) |

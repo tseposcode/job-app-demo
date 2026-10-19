@@ -54,7 +54,8 @@ On Profile: cancel or keep the plan, turn marketing emails on or off, read the p
 ## Where things are
 
 ```
-index.html            the frame: header, page area, tab bar
+index.html            the frame: header (with the logo), page area, tab bar
+img/                  the logo and phone home-screen icons
 css/                  tokens (colours), base, components, page-only styles
 js/main.js            starts the app
 js/config.js          fixed lists and settings
