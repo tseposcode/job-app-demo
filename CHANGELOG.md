@@ -2,6 +2,11 @@
 
 Notable changes a user or tester would notice. Newest first.
 
+## 0.6.3 (2026-10-19)
+
+- Fixed: on iPhones (Safari) CVs could not be read after the first one, for PDF and Word files alike. The app now reads a CV before saving it on the phone, and saves a copy rather than the picked file.
+- If a CV still can't be read, the message now ends with a short error code to help us find the cause.
+
 ## 0.6.2 (2026-10-19)
 
 - Company name written the standard way: Gentle-TT (Pty) Ltd (Profile and privacy notice). Spelling only, so nobody is asked to agree again.

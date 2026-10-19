@@ -20,8 +20,15 @@ export function checkCvFile(file) {
   return '';
 }
 
+// iPhone Safari can refuse to read a file again once it has been saved in
+// IndexedDB ("WebKitBlobResource error"). So we save an in-memory copy, never
+// the file the person picked, and read the CV before saving it.
+async function copyOf(file) {
+  return new File([await file.arrayBuffer()], file.name, { type: file.type, lastModified: file.lastModified });
+}
+
 export async function storeCv(u, file, { demo = false } = {}) {
-  await putCv(u.email, file);
+  await putCv(u.email, await copyOf(file));
   u.cv = { name: file.name, size: file.size, at: Date.now(), demo };
   save();
 }
@@ -41,8 +48,11 @@ export async function readCv(file) {
       return { ...empty, note: 'This CV looks like a scanned picture, so we could not read the words. Fill in your details below.' };
     }
     return { ...parseCv(text), note: '' };
-  } catch {
-    return { ...empty, note: 'We could not read this file. Fill in your details below, or try saving your CV as a PDF.' };
+  } catch (err) {
+    // The error name helps us find the cause when a tester sends a screenshot.
+    const code = (err && err.name) || 'Error';
+    console.warn('CV reader failed:', err);
+    return { ...empty, note: `We could not read this file. Fill in your details below, or try saving your CV as a PDF. (Error code: ${code})` };
   }
 }
 

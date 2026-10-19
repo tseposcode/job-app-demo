@@ -211,6 +211,41 @@ for (const [file, checks] of [
   });
 }
 
+// iPhone Safari can't read a file again after it has been saved in IndexedDB.
+// This copies that behaviour: once a file is saved, reading it fails.
+async function actLikeIphoneSafari(page) {
+  await page.addInitScript(() => {
+    const put = IDBObjectStore.prototype.put;
+    IDBObjectStore.prototype.put = function (value, key) {
+      if (value instanceof Blob) {
+        const fail = () => Promise.reject(new DOMException('WebKitBlobResource error 1', 'NotReadableError'));
+        value.arrayBuffer = fail;
+        value.text = fail;
+      }
+      return put.call(this, value, key);
+    };
+  });
+  await page.reload(); // the patch only applies to a freshly loaded page
+}
+
+for (const [i, file] of [
+  [0, 'a PDF'],
+  [5, 'a Word'],
+]) {
+  test(`iPhone Safari: ${file} sample CV is read, and a second CV after it`, async ({ page }) => {
+    await actLikeIphoneSafari(page);
+    await signUp(page, 'Test', 'Person', `safari${i}@test.com`);
+    await agreeToPrivacy(page);
+    await page.click(`[data-sample="${i}"]`);
+    await expect(page.locator('#view')).toContainText('We read your CV');
+    // Go back and pick another CV, as the tester did after the first one worked.
+    await page.click('#back');
+    await page.click('[data-sample="3"]');
+    await expect(page.locator('#view')).toContainText('We read your CV');
+    await expect(page.locator('#pCity')).toHaveValue('Pretoria');
+  });
+}
+
 test('briefcase logo in the header and the company on Profile', async ({ page }) => {
   await loginAsTest(page);
   await expect(page.locator('.wordmark svg.logo')).toBeVisible();

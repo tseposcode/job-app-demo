@@ -1,6 +1,6 @@
 {
   "name": "job-auto",
-  "version": "0.6.2",
+  "version": "0.6.3",
   "private": true,
   "description": "Job Auto test version: graduate and entry-level jobs with auto-apply. Browser-only demo.",
   "type": "module",
