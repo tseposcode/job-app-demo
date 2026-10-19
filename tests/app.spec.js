@@ -148,9 +148,14 @@ test('full sign-up with a sample CV: consent, CV read, plan, auto-apply', async 
   await expect(page.locator('h1')).toHaveText('Choose your plan');
   await page.click('[data-plan=monthly]');
   await page.click('#toPay');
+  await expect(page.locator('.sheet')).toContainText('Total due today');
   await expect(page.locator('.sheet')).toContainText('Test mode');
-  expect(await page.locator('.sheet input').count()).toBe(0); // no card fields
-  await page.click('#payTest');
+  await expect(page.locator('.wallet')).toHaveCount(3);
+  await page.click('#ccTest');
+  await page.click('#coPay');
+  await expect(page.locator('.sheet')).toContainText('Payment successful');
+  await expect(page.locator('.sheet')).toContainText('Visa •••• 4242');
+  await page.click('#coDone');
   await expect(page.locator('#toast')).toContainText('Auto-apply sent your CV to');
   await expect(page.locator('#view')).toContainText('Hi Lerato');
   await page.click('.tab[data-go=applied]');
@@ -315,6 +320,107 @@ test('the test account accepts a new notice by itself', async ({ page }) => {
   await expect(page.locator('#view')).toContainText('Hi Thabang');
 });
 
+// ---------- Checkout ----------
+
+async function toCheckout(page, email) {
+  await signUp(page, 'Pay', 'Tester', email);
+  await agreeToPrivacy(page);
+  await page.click('[data-sample="0"]');
+  await page.click('#dForm button[type=submit]');
+  await page.click('#prefForm button[type=submit]');
+  await expect(page.locator('h1')).toHaveText('Choose your plan');
+  await page.click('#toPay');
+  await expect(page.locator('.sheet')).toContainText('Total due today');
+}
+
+async function fillCard(page, number, expiry = '12 / 30', cvc = '123') {
+  await page.fill('#ccNum', number);
+  await page.fill('#ccExp', expiry);
+  await page.fill('#ccCvc', cvc);
+  await page.fill('#ccName', 'Pay Tester');
+}
+
+test('checkout: a real card is refused in test mode and nothing is kept', async ({ page }) => {
+  await toCheckout(page, 'realcard@test.com');
+  await fillCard(page, '5105 1051 0510 5100');
+  await expect(page.locator('#ccBrand')).toHaveText('Mastercard');
+  await page.click('#coPay');
+  await expect(page.locator('#coErr')).toContainText('real cards are never charged');
+  const stored = await page.evaluate(() => JSON.stringify(localStorage));
+  expect(stored).not.toContain('5105');
+});
+
+test('checkout: card checks and a declined card', async ({ page }) => {
+  await toCheckout(page, 'declined@test.com');
+  await fillCard(page, '4242 4242 4242 4241');
+  await page.click('#coPay');
+  await expect(page.locator('#coErr')).toContainText('Check your card number');
+  await fillCard(page, '4242 4242 4242 4242', '01 / 20');
+  await page.click('#coPay');
+  await expect(page.locator('#coErr')).toContainText('expired');
+  await fillCard(page, '4000 0000 0000 0002');
+  await page.click('#coPay');
+  await expect(page.locator('#coErr')).toContainText('declined');
+  await expect(page.locator('h1')).toHaveText('Choose your plan');
+});
+
+test('checkout: approve in the banking app (3-D Secure)', async ({ page }) => {
+  await toCheckout(page, 'threeds@test.com');
+  await fillCard(page, '4000 0027 6000 3184');
+  await page.click('#coPay');
+  await expect(page.locator('.sheet')).toContainText('Approve the payment in your banking app');
+  await page.click('#apYes');
+  await expect(page.locator('.sheet')).toContainText('Payment successful');
+});
+
+test('checkout: Apple Pay', async ({ page }) => {
+  await toCheckout(page, 'applepay@test.com');
+  await page.click('[data-wallet=apple_pay]');
+  await expect(page.locator('.sheet')).toContainText('Confirm with Face ID');
+  await page.click('#wPay');
+  await expect(page.locator('.sheet')).toContainText('Payment successful');
+  await expect(page.locator('.sheet')).toContainText('Apple Pay (Visa •••• 0019)');
+  await page.click('#coDone');
+  await page.click('.tab[data-go=profile]');
+  await expect(page.locator('#view')).toContainText('Apple Pay (Visa •••• 0019)');
+});
+
+test('checkout: Samsung Pay and Google Pay are offered', async ({ page }) => {
+  await toCheckout(page, 'wallets@test.com');
+  await expect(page.locator('[data-wallet=samsung_pay]')).toHaveText('Samsung Pay');
+  await page.click('[data-wallet=google_pay]');
+  await page.click('#wPay');
+  await expect(page.locator('.sheet')).toContainText('Google Pay');
+});
+
+test('checkout: Instant EFT pays once and the plan does not renew by itself', async ({ page }) => {
+  await toCheckout(page, 'eft@test.com');
+  await page.click('[data-tab=eft]');
+  await expect(page.locator('#coForm')).toContainText('does not renew by itself');
+  await page.click('#coPay');
+  await expect(page.locator('#coErr')).toContainText('Choose your bank');
+  await page.selectOption('#eftBank', 'Capitec');
+  await page.click('#coPay');
+  await expect(page.locator('.sheet')).toContainText('Payment successful');
+  await page.click('#coDone');
+  await page.click('.tab[data-go=profile]');
+  await expect(page.locator('#view')).toContainText('Instant EFT · Capitec');
+  await expect(page.locator('#view')).toContainText('Plan ends');
+});
+
+test('Profile: payment method, billing history and changing the card', async ({ page }) => {
+  await loginAsTest(page);
+  await page.click('.tab[data-go=profile]');
+  await expect(page.locator('#view')).toContainText('Visa •••• 4242');
+  await expect(page.locator('.bills .bill')).toHaveCount(1);
+  await page.click('#chCard');
+  await fillCard(page, '5555 5555 5555 4444', '08 / 29');
+  await page.click('#ccForm button[type=submit]');
+  await expect(page.locator('#toast')).toContainText('Mastercard •••• 4444 will be used');
+  await expect(page.locator('#view')).toContainText('Mastercard •••• 4444');
+  await expect(page.locator('#view')).toContainText('expires 08 / 29');
+});
+
 test('cancel and keep the plan', async ({ page }) => {
   await loginAsTest(page);
   await page.click('.tab[data-go=profile]');
@@ -322,7 +428,7 @@ test('cancel and keep the plan', async ({ page }) => {
   await page.click('[data-yes]');
   await expect(page.locator('#view')).toContainText('Ends');
   await page.click('#subResume');
-  await expect(page.locator('#view')).toContainText('Renews');
+  await expect(page.locator('#view')).toContainText('Next payment');
 });
 
 test('download my data, then delete the account', async ({ page }) => {

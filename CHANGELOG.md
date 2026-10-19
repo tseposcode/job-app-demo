@@ -2,6 +2,14 @@
 
 Notable changes a user or tester would notice. Newest first.
 
+## 0.9.0 (2026-10-19)
+
+- Realistic checkout, laid out like big subscription apps: order summary with total due today and next payment date; express checkout with Apple Pay, Samsung Pay and Google Pay (the phone's own wallet first); card payment with Visa, Mastercard, American Express and Diners Club; Instant EFT with South African banks; a clear "you agree to be charged" line; and a receipt at the end.
+- Card checks like a real checkout: card type detected as you type, number, expiry and security code checked, declined cards and "approve in your banking app" (3-D Secure) handled.
+- Test mode accepts only test cards ("Use a test card" fills one in). A real card is refused and never kept.
+- Profile shows the payment method (for example Visa •••• 4242), lets you change the card, and lists Billing history. Instant EFT pays once and does not renew by itself.
+- Payments go through one service (js/services/payments.js), so going live means adding the payment provider there, not changing screens.
+
 ## 0.8.0 (2026-10-19)
 
 - Privacy notice version 1.2: a new "Payment and billing information" section says what we collect when someone buys a plan (card details through the payment provider, billing details) and what we keep (plan, dates, amount, payment reference, card type, last four digits and expiry). Existing accounts are asked to agree again; the test account accepts it by itself.

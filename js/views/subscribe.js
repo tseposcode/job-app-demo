@@ -1,15 +1,13 @@
 // subscribe.js
 // Sign-up step 6, and the page anyone without an active plan lands on:
-// choose a plan, then a TEST checkout. No card details are ever asked for here.
-// A live version sends people to a payment provider's secure page instead.
+// choose a plan, then the checkout (views/sheets/checkout.js).
 
 import { PLANS } from '../config.js';
-import { $, $$, esc, fmtDay, money } from '../lib/utils.js';
-import { ICON } from '../lib/icons.js';
+import { $, $$, esc, money } from '../lib/utils.js';
 import { currentUser } from '../services/auth.js';
 import { waitingMatches } from '../services/applications.js';
 import { bestPlanId, perText, planById, planValue, subscribe } from '../services/subscription.js';
-import { closeSheet, openSheet } from '../ui/sheet.js';
+import { openCheckout } from './sheets/checkout.js';
 import { accountLine, stepHeader } from '../ui/steps.js';
 
 let chosen = bestPlanId();
@@ -50,7 +48,7 @@ export function render() {
     <div class="plans" role="radiogroup" aria-label="Plans">${plans}</div>
     <ul class="why card">${BENEFITS.map((b) => `<li class="ok"><b aria-hidden="true">✓</b><span>${esc(b)}</span></li>`).join('')}</ul>
     <button class="btn primary wide" id="toPay">Continue with ${esc(plan.name)} · ${money(plan.price)}</button>
-    <p class="small muted center">Test version: no real payment is taken.</p>
+    <p class="small muted center">Pay with Apple Pay, Samsung Pay, Google Pay, card or Instant EFT. Cancel any time.</p>
     ${accountLine(u)}`;
 }
 
@@ -61,36 +59,18 @@ export function bind(root, ctx) {
       ctx.refresh();
     }),
   );
-  $('#toPay', root).addEventListener('click', () => openCheckout(ctx));
+  $('#toPay', root).addEventListener('click', () => startCheckout(ctx));
 }
 
-function openCheckout(ctx) {
-  const plan = planById(chosen);
-  const renews = new Date();
-  renews.setMonth(renews.getMonth() + plan.months);
-  const root = openSheet(`
-    <div class="sheet-h"><div><h3>Checkout</h3><span class="who">Job Auto · ${esc(plan.name)}</span></div><button class="x" data-close aria-label="Close">${
-      ICON.x
-    }</button></div>
-    <div class="status warn"><span class="dot"></span><div><strong>Test mode</strong><span>No real payment is taken and no card details are asked for.</span></div></div>
-    <dl class="list">
-      <div class="row"><dt>Plan</dt><dd>${esc(plan.name)}</dd></div>
-      <div class="row"><dt>Price</dt><dd class="num">${money(plan.price)} ${perText(plan)}</dd></div>
-      <div class="row"><dt>Renews</dt><dd>${fmtDay(renews)}</dd></div>
-      <div class="row"><dt>Cancel</dt><dd>Any time on your profile. You keep access until the end of the period you paid for.</dd></div>
-    </dl>
-    <p class="small muted">In the live app you pay on a secure page run by a payment provider. Job Auto never sees or stores your card number.</p>
-    <button class="btn primary wide" id="payTest">Pay ${money(plan.price)} (test)</button>`);
-
-  $('#payTest', root).addEventListener('click', () => {
-    subscribe(plan.id);
-    closeSheet();
-    const sent = ctx.autoApply({ silent: true });
-    ctx.go('jobs');
-    ctx.toast(
-      sent
-        ? `You're subscribed. Auto-apply sent your CV to ${sent} ${sent === 1 ? 'job' : 'jobs'}.`
-        : "You're subscribed. Welcome to Job Auto.",
-    );
+function startCheckout(ctx) {
+  openCheckout({
+    plan: planById(chosen),
+    user: currentUser(),
+    onPaid: (payment) => subscribe(chosen, payment),
+    onDone: () => {
+      const sent = ctx.autoApply({ silent: true });
+      ctx.go('jobs');
+      ctx.toast(sent ? `Auto-apply sent your CV to ${sent} ${sent === 1 ? 'job' : 'jobs'}.` : 'Welcome to Job Auto Premium.');
+    },
   });
 }
