@@ -29,7 +29,7 @@ export const PROVINCES = [
 export const MODES = ['On-site', 'Hybrid', 'Remote'];
 
 // The company behind Job Auto, shown at the bottom of the Profile page.
-export const COMPANY = 'Gentle-TT Pty Ltd';
+export const COMPANY = 'Gentle-TT (Pty) Ltd';
 
 // Demo-only test account and admin PIN. Never put real passwords here.
 export const TEST_EMAIL = 'thabang@test.com';
@@ -56,7 +56,7 @@ export const PLANS = [
 ];
 
 // Privacy notice version. Change it when the notice changes and everyone is asked to agree again.
-export const PRIVACY_VERSION = '1.1'; // 1.1: names Gentle-TT Pty Ltd as the responsible party
+export const PRIVACY_VERSION = '1.1'; // 1.1: names Gentle-TT (Pty) Ltd as the responsible party
 // PLACEHOLDER: the real Information Officer contact goes here before launch.
 export const PRIVACY_CONTACT = 'privacy@jobauto.example';
 

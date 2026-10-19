@@ -216,7 +216,7 @@ test('briefcase logo in the header and the company on Profile', async ({ page })
   await expect(page.locator('.wordmark svg.logo')).toBeVisible();
   await expect(page.locator('.wordmark i')).toHaveCount(0); // the old checkmark is gone
   await page.click('.tab[data-go=profile]');
-  await expect(page.locator('#madeBy')).toHaveText('Job Auto is a product of Gentle-TT Pty Ltd.');
+  await expect(page.locator('#madeBy')).toHaveText('Job Auto is a product of Gentle-TT (Pty) Ltd.');
 });
 
 test('a changed privacy notice asks real accounts to agree again', async ({ page }) => {
@@ -233,7 +233,7 @@ test('a changed privacy notice asks real accounts to agree again', async ({ page
   });
   await page.reload();
   await expect(page.locator('h1')).toHaveText('Our privacy notice has changed');
-  await expect(page.locator('#view')).toContainText('a product of Gentle-TT Pty Ltd');
+  await expect(page.locator('#view')).toContainText('a product of Gentle-TT (Pty) Ltd');
   await page.check('#cProcess');
   await page.check('#cShare');
   await page.check('#cAdult');

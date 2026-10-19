@@ -2,6 +2,10 @@
 
 Notable changes a user or tester would notice. Newest first.
 
+## 0.6.2 (2026-10-19)
+
+- Company name written the standard way: Gentle-TT (Pty) Ltd (Profile and privacy notice). Spelling only, so nobody is asked to agree again.
+
 ## 0.6.1 (2026-10-19)
 
 - Privacy notice version 1.1: names Gentle-TT Pty Ltd as the company responsible for users' information (POPIA). Existing accounts are asked to agree again; the made-up test account accepts it by itself.
