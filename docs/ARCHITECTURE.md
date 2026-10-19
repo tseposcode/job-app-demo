@@ -98,4 +98,5 @@ There is one copy of the data (`js/core/store.js`). Nothing else keeps its own c
 - Passwords are hashed in the browser only for the demo. A live version must use a server.
 - No real applications are sent. Employer replies are simulated on a timer.
 - Payments are a test checkout. A live version sends people to a payment provider's page and learns they paid from the provider's server, never from the browser.
+- CV reading uses fixed rules on the device (`js/services/cv-reader.js`). It reads typed PDF and Word CVs, but not scanned or photographed ones. **Decided (Oct 2026): keep this for launch and add AI CV reading later**, on the server the live version will need. When that happens, the privacy notice must say CVs are sent to an AI service, and `PRIVACY_VERSION` must go up.
 - The privacy notice is a draft. A lawyer must check it, and the Information Officer details must be added, before real people use the app.
