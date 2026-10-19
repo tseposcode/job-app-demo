@@ -101,6 +101,12 @@ export function ensureTestAccount(state) {
   const test = state.users[TEST_EMAIL];
   if (!test) state.users[TEST_EMAIL] = createSeedState().users[TEST_EMAIL];
   else if (!test.subscription || !test.consent) Object.assign(test, testAccountSignup(Date.now()));
+  else if (test.consent.version !== PRIVACY_VERSION) {
+    // The test account is made up, so it agrees to a new notice automatically; real accounts are asked.
+    const at = Date.now();
+    test.consent = { ...test.consent, version: PRIVACY_VERSION, at };
+    test.consentLog = [...(test.consentLog || []), { at, version: PRIVACY_VERSION, what: 'Demo test account: updated notice accepted automatically' }];
+  }
   Object.values(state.users).forEach((u) => {
     if (u.onboarded === undefined) u.onboarded = !!u.cv;
   });

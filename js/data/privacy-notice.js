@@ -3,12 +3,13 @@
 // DRAFT for the test version: a lawyer must check it before the app goes live.
 // If you change what it says, bump PRIVACY_VERSION in config.js so everyone agrees again.
 
-import { PRIVACY_CONTACT, PRIVACY_VERSION } from '../config.js';
+import { COMPANY, PRIVACY_CONTACT, PRIVACY_VERSION } from '../config.js';
 
 export const NOTICE_TITLE = `Job Auto privacy notice (version ${PRIVACY_VERSION}, draft)`;
 
 // The short version on the sign-up step.
 export const SUMMARY = [
+  ['Who we are', `Job Auto is a product of ${COMPANY}, the company responsible for your information.`],
   ['What we collect', 'Your account details, your CV and profile (education, skills, experience, where and what you want to work), and the jobs you apply to.'],
   ['Why', 'To match you with jobs and to send your CV to employers when you apply, or when auto-apply applies for you.'],
   ['Who sees it', 'Only the employers you apply to, and the companies that host the app or take payments for us. We never sell your information.'],
@@ -17,7 +18,7 @@ export const SUMMARY = [
 
 // The full notice, opened from "Read the full privacy notice".
 export const SECTIONS = [
-  ['Who we are', `Job Auto is a job-matching service that is still being tested. The name and contact details of our Information Officer will be added here before launch. Until then, write to ${PRIVACY_CONTACT}.`],
+  ['Who we are', `Job Auto is a job-matching service, still being tested, and a product of ${COMPANY} ("we"). ${COMPANY} is the responsible party for your personal information under POPIA: we decide why and how it is used. Our address and the name and contact details of our Information Officer will be added here before launch. Until then, write to ${PRIVACY_CONTACT}.`],
   ['What we collect', 'Account: name, surname, email and password (stored scrambled, never as plain text). CV and profile: phone number, town and province, qualifications, skills, experience, job preferences and a photo if you add one. Activity: the jobs you apply to, their status and your settings. Plan: which plan you chose, its dates and a payment reference. We never see or store card numbers.'],
   ['What we do not need', 'We do not ask for your ID number, and we do not need information about your health, religion, race, union membership or criminal record. If your CV has these, think about taking them off before you upload it.'],
   ['Why we use it', 'To create your account; to match you with jobs; to send your CV and profile to employers when you apply or when auto-apply applies for you; to show you updates on your applications; to run your plan; and to keep the service safe. With your separate permission only, to email you job tips and offers.'],

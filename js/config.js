@@ -56,7 +56,7 @@ export const PLANS = [
 ];
 
 // Privacy notice version. Change it when the notice changes and everyone is asked to agree again.
-export const PRIVACY_VERSION = '1.0';
+export const PRIVACY_VERSION = '1.1'; // 1.1: names Gentle-TT Pty Ltd as the responsible party
 // PLACEHOLDER: the real Information Officer contact goes here before launch.
 export const PRIVACY_CONTACT = 'privacy@jobauto.example';
 
